@@ -43,6 +43,12 @@ class Projectile {
             if (specialEffects.homingEffect) {
                 this.currentAngle = null; // Will be initialized on first move
             }
+            
+            // Freeze effect - ice particles
+            if (specialEffects.freezeEffect) {
+                this.trailLength = 8; // Longer trail for ice effect
+                this.freezeColor = '#80D8FF'; // Light blue for freeze effect
+            }
         }
     }
 
@@ -131,6 +137,11 @@ class Projectile {
                 // Chain lightning effect - apply before target is damaged
                 if (this.specialEffects.chainLightning) {
                     this.applyChainLightning();
+                }
+                
+                // Freeze effect - apply slow to target
+                if (this.specialEffects.freezeEffect) {
+                    this.applyFreezeEffect();
                 }
             }
             
@@ -290,18 +301,100 @@ class Projectile {
         setTimeout(applyBurnDamage, tickInterval);
     }
 
-    draw(ctx) {
-        // Speciální vykreslení pro burn efekt
-        if (this.specialEffects && this.specialEffects.burnDamage) {
-            this.drawBurnEffect(ctx);
-        } else if (this.specialEffects && this.specialEffects.armorPiercing) {
-            this.drawArmorPiercingEffect(ctx);
-        } else if (this.specialEffects && (this.specialEffects.chainLightning || this.specialEffects.homingEffect)) {
-            this.drawRailgunEffect(ctx);
-        } else {
-            // Standardní vykreslení
-            this.drawStandard(ctx);
+    // New method to apply freeze effect
+    applyFreezeEffect() {
+        if (!this.target || this.target.isDead) return;
+        
+        const freezeConfig = this.specialEffects.freezeEffect;
+        const freezeFactor = freezeConfig.freezeFactor;
+        const freezeDuration = freezeConfig.freezeDuration;
+        
+        // Apply slow effect to the target
+        this.target.applySlowEffect(freezeFactor, freezeDuration);
+        
+        // Create freeze visual effect (ice particles)
+        createParticles(
+            this.target.x, 
+            this.target.y, 
+            this.freezeColor || '#80D8FF', 
+            10, // Number of particles
+            2,  // Speed 
+            freezeDuration * 0.3, // Duration
+            this.target.size * 0.3 // Size
+        );
+        
+        // Create floating text indicator
+        createFloatingText(
+            this.target.x, 
+            this.target.y - this.target.size, 
+            `SLOWED ${Math.round((1-freezeFactor)*100)}%`, 
+            '#40C4FF', // Blue color
+            14, // Size
+            1000 // Duration
+        );
+        
+        // Check if we have area freeze effect (level 3)
+        if (freezeConfig.areaFreeze) {
+            const areaConfig = freezeConfig.areaFreeze;
+            const areaRange = areaConfig.range;
+            const areaFreezeFactor = areaConfig.freezeFactor;
+            const areaFreezeDuration = areaConfig.freezeDuration;
+            
+            // Find nearby enemies within range
+            const nearbyEnemies = gameState.enemies.filter(enemy => 
+                !enemy.isDead && 
+                enemy !== this.target && 
+                distance(this.target.x, this.target.y, enemy.x, enemy.y) <= areaRange
+            );
+            
+            // Apply area freeze effect to nearby enemies
+            for (const enemy of nearbyEnemies) {
+                enemy.applySlowEffect(areaFreezeFactor, areaFreezeDuration);
+                
+                // Create smaller visual effect for area freeze
+                createParticles(
+                    enemy.x, 
+                    enemy.y, 
+                    '#B3E5FC', // Lighter blue for area effect
+                    5, // Fewer particles
+                    1, // Slower
+                    areaFreezeDuration * 0.2, // Shorter duration
+                    enemy.size * 0.2 // Smaller size
+                );
+                
+                // Create floating text indicator
+                createFloatingText(
+                    enemy.x, 
+                    enemy.y - enemy.size, 
+                    `SLOWED ${Math.round((1-areaFreezeFactor)*100)}%`, 
+                    '#81D4FA', // Lighter blue color
+                    12, // Smaller size
+                    800 // Shorter duration
+                );
+            }
         }
+    }
+
+    draw(ctx) {
+        // Check if toRemove flag is set
+        if (this.toRemove) return;
+        
+        // Choose the appropriate drawing method based on special effects
+        if (this.specialEffects) {
+            if (this.specialEffects.chainLightning) {
+                this.drawElectricEffect(ctx);
+                return;
+            } else if (this.specialEffects.burnDamage) {
+                this.drawBurnEffect(ctx);
+                return;
+            } else if (this.specialEffects.freezeEffect) {
+                this.drawFreezeEffect(ctx);
+                return;
+            }
+        }
+        
+        // Standard projectile drawing if no special effects
+        this.drawStandard(ctx);
     }
     
     // Draw method for railgun projectiles
@@ -453,6 +546,64 @@ class Projectile {
         ctx.fillStyle = 'rgba(220, 220, 255, 0.8)';
         ctx.beginPath();
         ctx.ellipse(this.x, this.y, this.size * 0.4, this.size * 0.8, angle, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Add new method to draw freeze projectile
+    drawFreezeEffect(ctx) {
+        // Draw trail with ice colors
+        for (let i = 0; i < this.trail.length; i++) {
+            const point = this.trail[i];
+            const alpha = point.alpha * 0.7;
+            
+            // Ice gradient
+            const gradient = ctx.createRadialGradient(
+                point.x, point.y, 0,
+                point.x, point.y, this.size * point.alpha * 1.2
+            );
+            gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`); // White core
+            gradient.addColorStop(0.5, `rgba(100, 200, 255, ${alpha})`); // Light blue middle
+            gradient.addColorStop(1, `rgba(0, 120, 220, 0)`); // Fade to transparent
+            
+            ctx.globalAlpha = 1.0;
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, this.size * point.alpha * 1.2, 0, Math.PI * 2);
+            ctx.fill(); 
+        }
+        
+        // Draw main projectile with ice effect
+        const gradient = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.size * 1.5
+        );
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)'); // White center
+        gradient.addColorStop(0.4, 'rgba(100, 200, 255, 0.8)'); // Light blue middle
+        gradient.addColorStop(1, 'rgba(0, 120, 220, 0)'); // Fade to transparent
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Add ice crystal core
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.beginPath();
+        
+        // Draw hexagon for crystal shape
+        for (let i = 0; i < 6; i++) {
+            const angle = i * Math.PI / 3;
+            const x = this.x + Math.cos(angle) * this.size * 0.7;
+            const y = this.y + Math.sin(angle) * this.size * 0.7;
+            
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+        
+        ctx.closePath();
         ctx.fill();
     }
 }

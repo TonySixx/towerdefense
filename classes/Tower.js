@@ -13,22 +13,24 @@ class Tower {
         this.type = type;
         this.level = level; // Úroveň věže (1-3)
         
+        // Speciální efekty
+        this.visualEffects = {};
+
         // Načtení statistik podle úrovně
         this.loadLevelStats();
-        
+
         // Stav věže
         this.isSelected = false;
         this.isUpgrading = false;
         this.isSelling = false;
-        
+
         // Animation properties
         this.shootAnimTimer = 0;
         this.shootAnimDuration = 100; // ms
         this.angle = 0; // Angle towards target
-        
-        // Speciální efekty
-        this.visualEffects = {};
-        
+
+
+
         // Pro kritické zásahy (kulomet level 3)
         this.lastHitWasCritical = false;
         
@@ -269,6 +271,12 @@ class Tower {
                 if (this.visualEffects.homingEffect) {
                     specialEffects = specialEffects || {};
                     specialEffects.homingEffect = this.visualEffects.homingEffect;
+                }
+
+                // Add freeze effect if present
+                if (this.visualEffects.freezeEffect) {
+                    specialEffects = specialEffects || {};
+                    specialEffects.freezeEffect = this.visualEffects.freezeEffect;
                 }
                 
                 projectiles.push(new Projectile(

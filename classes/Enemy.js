@@ -52,6 +52,11 @@ class Enemy {
         this.pulseTimer = Math.random() * 1000;
         this.pulseSpeed = 800 + Math.random() * 400; // ms na cyklus
         
+        // Freeze effect properties
+        this.slowFactor = 1.0; // No slow by default (1.0 = normal speed)
+        this.slowDuration = 0; // No slow duration by default
+        this.isFrozen = false; // Tracker for freeze visual effect
+        
         // Speciální efekty pro bossy
         if (this.isBoss) {
             // Bossy mají silnější pulzaci
@@ -70,6 +75,16 @@ class Enemy {
 
     move(deltaTime) {
         if (this.isDead || this.reachedEnd) return;
+
+        // Update slow effect duration
+        if (this.slowDuration > 0) {
+            this.slowDuration -= deltaTime;
+            if (this.slowDuration <= 0) {
+                // Reset slow effect when duration expires
+                this.slowFactor = 1.0;
+                this.isFrozen = false;
+            }
+        }
 
         // Get next path point
         const targetPathPointIndex = this.pathIndex + 1;
@@ -91,8 +106,8 @@ class Enemy {
         const dy = targetCanvasPos.y - this.y;
         const distToTarget = Math.sqrt(dx * dx + dy * dy);
         
-        // Calculate movement for this frame
-        const moveDistance = this.speed * (deltaTime / 1000);
+        // Calculate movement for this frame - Apply slow factor
+        const moveDistance = this.speed * this.slowFactor * (deltaTime / 1000);
 
         // Check if reached next path point
         if (distToTarget <= moveDistance) {
@@ -146,6 +161,41 @@ class Enemy {
         // Pulsation effect - používáme pulseIntensity podle typu nepřítele
         const pulseFactor = 1.0 + Math.sin(this.pulseTimer / this.pulseSpeed * Math.PI * 2) * this.pulseIntensity;
         const currentSize = this.size * pulseFactor;
+        
+        // Draw freeze effect if enemy is slowed
+        if (this.isFrozen) {
+            // Add frost/ice effect around enemy
+            const freezeGlow = ctx.createRadialGradient(
+                this.x, this.y, currentSize * 0.8,
+                this.x, this.y, currentSize * 1.4
+            );
+            
+            freezeGlow.addColorStop(0, 'rgba(100, 200, 255, 0.7)');
+            freezeGlow.addColorStop(1, 'rgba(100, 200, 255, 0)');
+            
+            ctx.fillStyle = freezeGlow;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, currentSize * 1.4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Ice crystal effect
+            const crystalCount = 6;
+            const crystalSize = currentSize * 0.3;
+            for (let i = 0; i < crystalCount; i++) {
+                const angle = (i / crystalCount) * Math.PI * 2 + (this.pulseTimer / 1000);
+                const offsetX = Math.cos(angle) * currentSize * 0.8;
+                const offsetY = Math.sin(angle) * currentSize * 0.8;
+                
+                ctx.fillStyle = 'rgba(200, 240, 255, 0.6)';
+                ctx.beginPath();
+                ctx.moveTo(this.x + offsetX, this.y + offsetY - crystalSize);
+                ctx.lineTo(this.x + offsetX + crystalSize/2, this.y + offsetY);
+                ctx.lineTo(this.x + offsetX, this.y + offsetY + crystalSize);
+                ctx.lineTo(this.x + offsetX - crystalSize/2, this.y + offsetY);
+                ctx.closePath();
+                ctx.fill();
+            }
+        }
         
         // Speciální efekt záře pro bossy
         if (this.isBoss) {
@@ -337,6 +387,16 @@ class Enemy {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(bossName, this.x, labelY + labelHeight / 2);
+    }
+
+    // New method to apply slow effect
+    applySlowEffect(factor, duration) {
+        // Only apply if the new slow is stronger or the current one is about to expire
+        if (factor < this.slowFactor || this.slowDuration < 500) {
+            this.slowFactor = factor;
+            this.slowDuration = duration;
+            this.isFrozen = true;
+        }
     }
 }
 

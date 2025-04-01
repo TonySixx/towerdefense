@@ -566,6 +566,25 @@ function updateTowerActionUI() {
             if (nextLevelData.extraFeatures.homingEffect) {
                 specialText += `Homing Projectiles, `;
             }
+            // Přidání speciálních efektů pro freezer
+            if (nextLevelData.extraFeatures.freezeEffect) {
+                // Základní freeze efekt
+                const freezePercent = Math.round((1-nextLevelData.extraFeatures.freezeEffect.freezeFactor)*100);
+                const freezeDuration = nextLevelData.extraFeatures.freezeEffect.freezeDuration/1000;
+                
+                // Text pro základní freeze efekt
+                specialText += `Freeze Effect (${freezePercent}% slow, ${freezeDuration}s)`;
+                
+                // Přidání informací o area freeze, pokud existuje
+                if (nextLevelData.extraFeatures.freezeEffect.areaFreeze) {
+                    const areaRange = nextLevelData.extraFeatures.freezeEffect.areaFreeze.range;
+                    const areaPercent = Math.round((1-nextLevelData.extraFeatures.freezeEffect.areaFreeze.freezeFactor)*100);
+                    const areaDuration = nextLevelData.extraFeatures.freezeEffect.areaFreeze.freezeDuration/1000;
+                    specialText += `, Area Freeze (${areaRange} range, ${areaPercent}% slow, ${areaDuration}s)`;
+                }
+                
+                specialText += ', ';
+            }
             
             // Odstranění poslední čárky a mezery
             specialText = specialText.replace(/, $/, '');
