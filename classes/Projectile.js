@@ -329,7 +329,7 @@ class Projectile {
             this.target.y - this.target.size, 
             `SLOWED ${Math.round((1-freezeFactor)*100)}%`, 
             '#40C4FF', // Blue color
-            14, // Size
+            12, // Size
             1000 // Duration
         );
         
@@ -368,7 +368,7 @@ class Projectile {
                     enemy.y - enemy.size, 
                     `SLOWED ${Math.round((1-areaFreezeFactor)*100)}%`, 
                     '#81D4FA', // Lighter blue color
-                    12, // Smaller size
+                    10, // Smaller size
                     800 // Shorter duration
                 );
             }
