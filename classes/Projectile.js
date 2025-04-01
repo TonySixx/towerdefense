@@ -1,6 +1,8 @@
 // Projectile Class
 import { distance } from '../utils.js';
 import Particle from './Particle.js';
+import { createParticles, createFloatingText, gameState } from '../gameLogic.js';
+import { triggerScreenFlash } from '../renderers.js';
 
 class Projectile {
     constructor(startX, startY, targetEnemy, damage, speed, color, size) {
@@ -53,12 +55,29 @@ class Projectile {
 
     hitTarget() {
         if (!this.toRemove && this.target && !this.target.isDead) {
-            this.target.takeDamage(this.damage);
-            this.toRemove = true;
+            // Pass onDeath callback to display floating money text
+            this.target.takeDamage(this.damage, (x, y, value) => {
+                // Create death explosion particles
+                createParticles(x, y, this.target.color, 15, 4, 500, this.target.size * 0.5);
+                
+                // Create gold coin effect
+                Particle.createGoldCoins(gameState, x, y, 6 + Math.floor(value / 3));
+                
+                // Create floating money text - larger size, vibrant gold color and longer duration
+                createFloatingText(
+                    x, 
+                    y - this.target.size - 5, 
+                    `+${value}`, 
+                    '#ffdf00', // More vibrant gold color
+                    20, // Larger text size
+                    3000 // Longer duration
+                );
+                
+                // Trigger more noticeable gold screen flash
+                triggerScreenFlash(`rgba(255, 215, 0, 0.15)`, 0.15);
+            });
             
-            // Note: createParticles will be implemented in gameLogic.js
-            // This is just a placeholder to show intent
-            // createParticles(this.x, this.y, this.color, 5, 3, 300, this.size * 0.8);
+            this.toRemove = true;
         }
     }
 

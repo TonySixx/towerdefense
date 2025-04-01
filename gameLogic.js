@@ -1,9 +1,11 @@
 // Game Logic
-import { MAX_WAVES, path, getUIElements, towerTypes } from './constants.js';
+import { MAX_WAVES, path, getUIElements, towerTypes, getCanvas } from './constants.js';
 import { createGrid, markPathOnGrid, isValidPlacement } from './utils.js';
 import Enemy from './classes/Enemy.js';
 import Tower from './classes/Tower.js';
 import Particle from './classes/Particle.js';
+import FloatingText from './classes/FloatingText.js';
+import { triggerScreenFlash, updateScreenFlash } from './renderers.js';
 
 // Game State
 export const gameState = {
@@ -14,6 +16,7 @@ export const gameState = {
     towers: [],
     projectiles: [],
     particles: [],
+    floatingTexts: [],
     selectedTowerType: null,
     placingTower: false,
     mouse: { x: 0, y: 0, gridX: 0, gridY: 0 },
@@ -38,6 +41,11 @@ export function createParticles(x, y, color, count, speed, life, size) {
     for (let i = 0; i < count; i++) {
         gameState.particles.push(new Particle(x, y, color, size, speed, life));
     }
+}
+
+// Helper function to create floating text
+export function createFloatingText(x, y, text, color = '#ffd700', size = 16, lifespan = 1500) {
+    gameState.floatingTexts.push(new FloatingText(x, y, text, color, size, lifespan));
 }
 
 // Spawn new enemy
@@ -74,6 +82,9 @@ export function startNextWave() {
 export function update(deltaTime) {
     if (gameState.state === 'game_over' || gameState.state === 'victory') return;
 
+    // Update screen flash effect
+    updateScreenFlash(deltaTime);
+
     // Enemy Spawning
     if (gameState.state === 'wave_inprogress' && gameState.spawnCounter < gameState.enemiesToSpawn) {
         gameState.timeSinceLastSpawn += deltaTime;
@@ -105,11 +116,13 @@ export function update(deltaTime) {
     
     gameState.projectiles.forEach(proj => proj.move(deltaTime));
     gameState.particles.forEach(p => p.update(deltaTime));
+    gameState.floatingTexts.forEach(text => text.update(deltaTime));
 
     // Cleanup
     gameState.enemies = gameState.enemies.filter(enemy => !enemy.isDead);
     gameState.projectiles = gameState.projectiles.filter(proj => !proj.toRemove);
     gameState.particles = gameState.particles.filter(p => p.life > 0 && p.size >= 1);
+    gameState.floatingTexts = gameState.floatingTexts.filter(text => text.life > 0);
 
     // Check Wave End
     if (gameState.state === 'wave_inprogress' && 
@@ -120,7 +133,38 @@ export function update(deltaTime) {
         const { startWaveButton } = getUIElements();
         startWaveButton.disabled = false;
         
-        gameState.money += 60 + gameState.wave * 6; // Wave bonus
+        const canvas = getCanvas();
+        const bonus = 60 + gameState.wave * 6;
+        gameState.money += bonus;
+        
+        // Create wave bonus effect - larger text with longer duration
+        createFloatingText(
+            canvas.width / 2, 
+            canvas.height / 2 - 50, 
+            `+${bonus}`, 
+            '#ffdf00', // Vibrant gold
+            32, // Much larger size
+            4000 // Even longer duration
+        );
+        createFloatingText(
+            canvas.width / 2, 
+            canvas.height / 2 + 20, 
+            `VLNA DOKONČENA!`, 
+            '#ffffff', 
+            32, 
+            4000
+        );
+        
+        // Create multiple coin effects in different locations
+        for (let i = 0; i < 15; i++) {
+            const x = canvas.width / 2 + (Math.random() - 0.5) * 300;
+            const y = canvas.height / 2 + (Math.random() - 0.5) * 200;
+            Particle.createGoldCoins(gameState, x, y, 8 + Math.floor(Math.random() * 8));
+        }
+        
+        // Strong gold flash for wave bonus
+        triggerScreenFlash('rgba(255, 215, 0, 0.35)', 0.35);
+        
         updateUI();
         console.log(`Wave ${gameState.wave} Complete!`);
     }

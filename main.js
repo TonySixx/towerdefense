@@ -30,7 +30,7 @@ function gameLoop(timestamp) {
     draw(
         ctx, 
         canvas, 
-        gameState.state, 
+        gameState, 
         gameState.grid, 
         gameState.towers, 
         gameState.projectiles, 

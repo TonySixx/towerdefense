@@ -2,6 +2,33 @@
 import { TILE_SIZE, ROWS, COLS, path, towerTypes } from './constants.js';
 import { getCanvasCoords, isValidPlacement } from './utils.js';
 
+// Global variables for screen flash effect
+let flashIntensity = 0;
+let flashColor = 'rgba(255, 215, 0, 0)'; // Golden color for money reward
+
+// Screen flash effect - call this when enemy is killed
+export function triggerScreenFlash(color = 'rgba(255, 215, 0, 0.15)', intensity = 0.15) {
+    flashIntensity = Math.min(flashIntensity + intensity, 0.3); // Cap intensity
+    flashColor = color;
+}
+
+// Update flash effect each frame
+export function updateScreenFlash(deltaTime) {
+    if (flashIntensity > 0) {
+        flashIntensity -= deltaTime / 500; // Fade out speed
+        if (flashIntensity < 0) flashIntensity = 0;
+    }
+}
+
+// Draw screen flash effect
+function drawScreenFlash(ctx, canvas) {
+    if (flashIntensity <= 0) return;
+    
+    const alpha = flashColor.slice(0, -4) + flashIntensity + ')';
+    ctx.fillStyle = alpha;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
 // Draw background with gradient
 export function drawBackground(ctx, canvas) {
     const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -112,6 +139,11 @@ export function draw(ctx, canvas, gameState, grid, towers, projectiles, enemies,
     projectiles.forEach(proj => proj.draw(ctx));
     enemies.forEach(enemy => enemy.draw(ctx));
     particles.forEach(particle => particle.draw(ctx));
+    
+    // Draw floating texts
+    if (gameState.floatingTexts) {
+        gameState.floatingTexts.forEach(text => text.draw(ctx));
+    }
 
     // Draw placement preview
     if (placingTower && selectedTowerType) {
@@ -124,4 +156,7 @@ export function draw(ctx, canvas, gameState, grid, towers, projectiles, enemies,
             grid
         );
     }
+
+    // Draw screen flash effect at the end
+    drawScreenFlash(ctx, canvas);
 } 

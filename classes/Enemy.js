@@ -2,6 +2,7 @@
 import { getCanvasCoords, lerpColor } from '../utils.js';
 import { path } from '../constants.js';
 import { TILE_SIZE } from '../constants.js';
+import { gameState, updateUI } from '../gameLogic.js';
 
 class Enemy {
     constructor(waveNum) {
@@ -66,11 +67,19 @@ class Enemy {
         this.pulseTimer += deltaTime;
     }
 
-    takeDamage(amount) {
+    takeDamage(amount, onDeath = null) {
         this.health -= amount;
         if (this.health <= 0 && !this.isDead) {
             this.isDead = true;
-            // Money reward handled by gameLogic.js
+            
+            // Immediately award money on death
+            gameState.money += this.value;
+            updateUI(); // Update UI to show new money amount
+            
+            // Call callback function if provided (for visual effects)
+            if (onDeath) {
+                onDeath(this.x, this.y, this.value);
+            }
             
             // Death explosion particles handled by gameLogic.js
             // createParticles(this.x, this.y, this.color, 15, 4, 500, this.size * 0.5);
