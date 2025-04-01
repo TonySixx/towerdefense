@@ -534,6 +534,13 @@ function updateTowerActionUI() {
             if (nextLevelData.extraFeatures.headshotChance) {
                 specialText += `${nextLevelData.extraFeatures.headshotChance * 100}% šance na headshot, `;
             }
+            // Přidání speciálních efektů pro railgun
+            if (nextLevelData.extraFeatures.chainLightning) {
+                specialText += `Řetězový blesk (${nextLevelData.extraFeatures.chainLightning.damage} poškození, ${nextLevelData.extraFeatures.chainLightning.targets} cíle), `;
+            }
+            if (nextLevelData.extraFeatures.homingEffect) {
+                specialText += `Samonaváděcí projektily, `;
+            }
             
             // Odstranění poslední čárky a mezery
             specialText = specialText.replace(/, $/, '');

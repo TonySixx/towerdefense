@@ -33,6 +33,16 @@ class Projectile {
             if (specialEffects.armorPiercing) {
                 this.size = size * 1.2; // O 20% větší projektil
             }
+            
+            // Chain lightning effect - longer trail
+            if (specialEffects.chainLightning) {
+                this.trailLength = 12; // Extra long trail for electric effect
+            }
+            
+            // Homing effect - initialize tracking angle
+            if (specialEffects.homingEffect) {
+                this.currentAngle = null; // Will be initialized on first move
+            }
         }
     }
 
@@ -65,8 +75,38 @@ class Projectile {
         if (dist <= moveDistance || dist < hitRadius) { // Adjusted hit condition
             this.hitTarget();
         } else {
-            this.x += (dx / dist) * moveDistance;
-            this.y += (dy / dist) * moveDistance;
+            // Direction vector toward target
+            let dirX = dx / dist;
+            let dirY = dy / dist;
+            
+            // Apply homing effect if available
+            if (this.specialEffects && this.specialEffects.homingEffect) {
+                const strength = this.specialEffects.homingEffect.trackingStrength;
+                
+                // Initialize current angle on first frame
+                if (!this.currentAngle) {
+                    this.currentAngle = Math.atan2(dirY, dirX);
+                }
+                
+                // Get current direction vector
+                let currentDirX = Math.cos(this.currentAngle);
+                let currentDirY = Math.sin(this.currentAngle);
+                
+                // Interpolate between current direction and ideal direction
+                dirX = currentDirX * (1 - strength) + dirX * strength;
+                dirY = currentDirY * (1 - strength) + dirY * strength;
+                
+                // Normalize
+                const dirMag = Math.sqrt(dirX * dirX + dirY * dirY);
+                dirX /= dirMag;
+                dirY /= dirMag;
+                
+                // Update current angle
+                this.currentAngle = Math.atan2(dirY, dirX);
+            }
+            
+            this.x += dirX * moveDistance;
+            this.y += dirY * moveDistance;
         }
     }
 
@@ -86,6 +126,11 @@ class Projectile {
                 // Burn efekt - vytvoří vizuální efekt hoření
                 if (this.specialEffects.burnDamage && this.specialEffects.burnDuration) {
                     this.applyBurnEffect();
+                }
+                
+                // Chain lightning effect - apply before target is damaged
+                if (this.specialEffects.chainLightning) {
+                    this.applyChainLightning();
                 }
             }
             
@@ -112,6 +157,79 @@ class Projectile {
             });
             
             this.toRemove = true;
+        }
+    }
+    
+    // Apply chain lightning effect to nearby enemies
+    applyChainLightning() {
+        if (!this.target || this.target.isDead) return;
+        
+        const chainConfig = this.specialEffects.chainLightning;
+        const chainRange = chainConfig.range;
+        const chainDamage = chainConfig.damage;
+        const maxTargets = chainConfig.targets;
+        
+        // Find nearby enemies for chain effect
+        const nearbyEnemies = gameState.enemies.filter(enemy => 
+            !enemy.isDead && 
+            enemy !== this.target && 
+            distance(this.target.x, this.target.y, enemy.x, enemy.y) <= chainRange
+        );
+        
+        // Sort by distance
+        nearbyEnemies.sort((a, b) => {
+            const distA = distance(this.target.x, this.target.y, a.x, a.y);
+            const distB = distance(this.target.x, this.target.y, b.x, b.y);
+            return distA - distB;
+        });
+        
+        // Get closest enemies up to max targets
+        const chainTargets = nearbyEnemies.slice(0, maxTargets);
+        
+        // Apply chain effect to targets
+        for (const enemy of chainTargets) {
+            // Apply damage
+            enemy.takeDamage(chainDamage);
+            
+            // Visual effects
+            createFloatingText(
+                enemy.x, 
+                enemy.y - enemy.size, 
+                `${chainDamage} ⚡`, 
+                '#00E5FF', // Electric blue
+                16, 
+                1000
+            );
+            
+            // Create lightning effect
+            this.createLightningEffect(this.target, enemy);
+        }
+    }
+    
+    // Create visual lightning effect between two points
+    createLightningEffect(source, target) {
+        // Create lightning path from source to target
+        const steps = 5;
+        const dx = target.x - source.x;
+        const dy = target.y - source.y;
+        
+        // Create lightning path with random offsets
+        for (let i = 0; i <= steps; i++) {
+            // Calculate point position with zigzag effect
+            const t = i / steps;
+            const pointX = source.x + dx * t + (Math.random() - 0.5) * 20 * (i > 0 && i < steps);
+            const pointY = source.y + dy * t + (Math.random() - 0.5) * 20 * (i > 0 && i < steps);
+            
+            // Create particles at each point
+            createParticles(
+                pointX,
+                pointY,
+                '#00E5FF', // Electric blue
+                3, // Fewer particles per point
+                3,
+                200,
+                2
+            );
         }
     }
     
@@ -178,10 +296,56 @@ class Projectile {
             this.drawBurnEffect(ctx);
         } else if (this.specialEffects && this.specialEffects.armorPiercing) {
             this.drawArmorPiercingEffect(ctx);
+        } else if (this.specialEffects && (this.specialEffects.chainLightning || this.specialEffects.homingEffect)) {
+            this.drawRailgunEffect(ctx);
         } else {
             // Standardní vykreslení
             this.drawStandard(ctx);
         }
+    }
+    
+    // Draw method for railgun projectiles
+    drawRailgunEffect(ctx) {
+        // Draw a longer, more electric trail
+        for (let i = 0; i < this.trail.length; i++) {
+            const point = this.trail[i];
+            const alpha = point.alpha * 0.7;
+            
+            // Electric gradient
+            const gradient = ctx.createRadialGradient(
+                point.x, point.y, 0,
+                point.x, point.y, this.size * point.alpha * 1.5
+            );
+            gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`); // White core
+            gradient.addColorStop(0.5, `rgba(0, 229, 255, ${alpha * 0.8})`); // Cyan middle
+            gradient.addColorStop(1, `rgba(0, 128, 255, 0)`); // Fade to transparent
+            
+            ctx.globalAlpha = 1.0;
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, this.size * point.alpha * 1.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Draw main projectile with electric effect
+        const gradient = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.size * 2
+        );
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)'); // White center
+        gradient.addColorStop(0.4, 'rgba(0, 229, 255, 0.8)'); // Cyan middle
+        gradient.addColorStop(1, 'rgba(0, 128, 255, 0)'); // Fade to transparent
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Add electric core
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * 0.7, 0, Math.PI * 2);
+        ctx.fill();
     }
     
     // Standardní vykreslení projektilu

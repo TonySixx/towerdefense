@@ -242,6 +242,79 @@ export const towerTypes = {
         cost: 100, range: 220, damage: 45, fireRate: 1800, projectileSpeed: 18,
         colorBase: '#388e3c', colorTop: '#c8e6c9', colorGun: '#1b5e20',
         projectileColor: '#a5d6a7', projectileSize: 3
+    },
+    railgun: {
+        name: "Railgun",
+        levels: [
+            {
+                level: 1,
+                cost: 80, 
+                range: 140, 
+                damage: 20, 
+                fireRate: 800, 
+                projectileSpeed: 20, // Extremely fast projectiles
+                sellValue: 56, // 70% return
+                upgradePrice: 65,
+                colorBase: '#1E88E5', // Electric blue
+                colorTop: '#90CAF9',  // Light blue
+                colorGun: '#0D47A1',  // Dark blue
+                projectileColor: '#00E5FF', // Bright cyan
+                projectileSize: 3  // Smaller projectile for speed visual
+            },
+            {
+                level: 2,
+                cost: 145, // Original + upgrade
+                range: 160, 
+                damage: 30, 
+                fireRate: 750, 
+                projectileSpeed: 22,
+                sellValue: 102, // 70% return
+                upgradePrice: 90,
+                colorBase: '#1565C0', // Darker blue
+                colorTop: '#64B5F6',  // Medium blue
+                colorGun: '#0D47A1',  // Dark blue
+                projectileColor: '#18FFFF', // Brighter cyan
+                projectileSize: 4,
+                // Special effect for level 2
+                extraFeatures: {
+                    chainLightning: {
+                        range: 60,      // Range to nearby enemies
+                        damage: 10,      // Damage of chain effect
+                        targets: 2       // Number of secondary targets
+                    }
+                }
+            },
+            {
+                level: 3,
+                cost: 235, // Total investment
+                range: 180, 
+                damage: 45, 
+                fireRate: 700, 
+                projectileSpeed: 25, // Fastest projectile in game
+                sellValue: 165, // 70% return
+                upgradePrice: 0, // Max level
+                colorBase: '#0D47A1', // Very dark blue
+                colorTop: '#42A5F5',  // Medium-light blue
+                colorGun: '#01579B',  // Very dark blue
+                projectileColor: '#00B8D4', // Deep cyan
+                projectileSize: 5,
+                // Special effects for level 3
+                extraFeatures: {
+                    chainLightning: {
+                        range: 80,      // Increased range
+                        damage: 20,      // Increased damage
+                        targets: 3       // More secondary targets
+                    },
+                    homingEffect: {
+                        trackingStrength: 0.3 // How strongly projectiles home in on targets
+                    }
+                }
+            }
+        ],
+        // For backward compatibility keeping level 1 properties
+        cost: 80, range: 140, damage: 20, fireRate: 800, projectileSpeed: 20,
+        colorBase: '#1E88E5', colorTop: '#90CAF9', colorGun: '#0D47A1',
+        projectileColor: '#00E5FF', projectileSize: 3
     }
 };
 

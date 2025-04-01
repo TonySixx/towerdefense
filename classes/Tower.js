@@ -243,11 +243,33 @@ class Tower {
                 }, 100);
             } else {
                 // Standardní střelba
-                const specialEffects = this.visualEffects.burnEffect ? 
-                    { burnDamage: 2, burnDuration: 2000 } : 
-                    this.visualEffects.armorPiercing ? 
-                    { armorPiercing: this.visualEffects.armorPiercing } : 
-                    null;
+                // Build special effects object for the projectile
+                let specialEffects = null;
+                
+                // Add burn effect if present
+                if (this.visualEffects.burnEffect) {
+                    specialEffects = specialEffects || {};
+                    specialEffects.burnDamage = 2;
+                    specialEffects.burnDuration = 2000;
+                }
+                
+                // Add armor piercing if present
+                if (this.visualEffects.armorPiercing) {
+                    specialEffects = specialEffects || {};
+                    specialEffects.armorPiercing = this.visualEffects.armorPiercing;
+                }
+                
+                // Add chain lightning effect if present
+                if (this.visualEffects.chainLightning) {
+                    specialEffects = specialEffects || {};
+                    specialEffects.chainLightning = this.visualEffects.chainLightning;
+                }
+                
+                // Add homing effect if present
+                if (this.visualEffects.homingEffect) {
+                    specialEffects = specialEffects || {};
+                    specialEffects.homingEffect = this.visualEffects.homingEffect;
+                }
                 
                 projectiles.push(new Projectile(
                     projStartX, projStartY, 
