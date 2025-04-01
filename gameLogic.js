@@ -6,6 +6,7 @@ import Tower from './classes/Tower.js';
 import Particle from './classes/Particle.js';
 import FloatingText from './classes/FloatingText.js';
 import { triggerScreenFlash, updateScreenFlash } from './renderers.js';
+import { enemyTypes, bossTypes, waveConfigurations } from './enemyTypes.js';
 
 // Game State
 export const gameState = {
@@ -22,12 +23,18 @@ export const gameState = {
     mouse: { x: 0, y: 0, gridX: 0, gridY: 0 },
     grid: null,
     state: 'waiting', // 'waiting', 'wave_inprogress', 'game_over', 'victory'
+    // Nové vlastnosti pro systém vln
+    currentWaveConfig: null,   // Konfigurace aktuální vlny
+    enemyQueue: [],            // Fronta nepřátel, kteří mají být spawnováni (s typy a časováním)
+    bossPending: false,        // Čekáme na spawn bosse
+    bossConfig: null,          // Konfigurace bosse pro aktuální vlnu
+    // Staré vlastnosti pro spawnování nepřátel
     enemiesToSpawn: 0,
     spawnCounter: 0,
     spawnInterval: 900,
     timeSinceLastSpawn: 0,
     lastTime: 0,
-    // Nové vlastnosti pro různé mapy
+    // Vlastnosti pro různé mapy
     currentMapType: 'medium',
     currentPath: null,
     enemyHealthModifier: 1.0,
@@ -55,6 +62,14 @@ export function initGame(mapType = 'medium') {
     gameState.selectedTowerType = null;
     gameState.placingTower = false;
     gameState.state = 'waiting';
+    
+    // Reset nových vlastností pro systém vln
+    gameState.currentWaveConfig = null;
+    gameState.enemyQueue = [];
+    gameState.bossPending = false;
+    gameState.bossConfig = null;
+    
+    // Reset starých vlastností
     gameState.enemiesToSpawn = 0;
     gameState.spawnCounter = 0;
     
@@ -77,15 +92,76 @@ export function createFloatingText(x, y, text, color = '#ffd700', size = 16, lif
     gameState.floatingTexts.push(new FloatingText(x, y, text, color, size, lifespan));
 }
 
-// Spawn new enemy
+// Spawn new enemy - aktualizovaná metoda pro nový systém vln
 export function spawnEnemy() {
-    if (gameState.enemiesToSpawn > 0 && gameState.spawnCounter < gameState.enemiesToSpawn) {
-        gameState.enemies.push(new Enemy(gameState.wave, gameState.enemyHealthModifier));
-        gameState.spawnCounter++;
+    // Pokud je fronta prázdná, nekontrolujeme, zda je čas na bosse
+    if (gameState.enemyQueue.length === 0) {
+        // Pokud existuje boss pro tuto vlnu a všichni běžní nepřátelé byli spawnováni,
+        // přidáme bosse
+        if (gameState.bossPending && gameState.bossConfig) {
+            const bossType = gameState.bossConfig.type;
+            gameState.enemies.push(new Enemy(
+                gameState.wave,
+                gameState.enemyHealthModifier,
+                bossType,
+                true // je to boss
+            ));
+            gameState.bossPending = false;
+            
+            console.log(`Boss ${bossType} spawned in wave ${gameState.wave}!`);
+            
+            // Oznámení o spawnování bosse
+            const canvas = getCanvas();
+            triggerScreenFlash('rgba(255, 0, 0, 0.25)', 0.3); // Červený záblesk pro bosse
+            createFloatingText(
+                canvas.width / 2, 
+                canvas.height / 2, 
+                `BOSS PŘICHÁZÍ!`, 
+                '#ff0000', 
+                32, 
+                4000
+            );
+        }
+        return;
     }
+    
+    // Získáme další položku z fronty nepřátel
+    const nextEnemy = gameState.enemyQueue.shift();
+    gameState.enemies.push(new Enemy(
+        gameState.wave,
+        gameState.enemyHealthModifier,
+        nextEnemy.type,
+        false // není to boss
+    ));
+    
+    // Aktualizujeme čítače pro zpětnou kompatibilitu
+    gameState.spawnCounter++;
 }
 
-// Start next wave
+// Pomocná funkce pro vytvoření fronty nepřátel na základě konfigurace vlny
+function prepareEnemyQueue(waveConfig) {
+    const queue = [];
+    
+    // Zpracujeme všechny typy nepřátel definované v konfiguraci vlny
+    for (const enemyGroup of waveConfig.enemies) {
+        for (let i = 0; i < enemyGroup.count; i++) {
+            queue.push({
+                type: enemyGroup.type,
+                spawnDelay: enemyGroup.spawnDelay
+            });
+        }
+    }
+    
+    // Náhodně promícháme pořadí nepřátel (kromě bossů)
+    for (let i = queue.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [queue[i], queue[j]] = [queue[j], queue[i]];
+    }
+    
+    return queue;
+}
+
+// Start next wave - aktualizovaná metoda pro nový systém vln
 export function startNextWave() {
     if (gameState.state !== 'waiting') return;
     
@@ -95,11 +171,49 @@ export function startNextWave() {
         return;
     }
     
+    // Nastavení stavu vlny
     gameState.state = 'wave_inprogress';
-    // Použití modifikátoru vlny pro určení počtu nepřátel
-    gameState.enemiesToSpawn = Math.floor((8 + gameState.wave * 4) * gameState.waveModifier);
-    gameState.spawnCounter = 0;
-    gameState.timeSinceLastSpawn = gameState.spawnInterval;
+    
+    // Získání konfigurace vlny
+    const waveIndex = gameState.wave - 1; // pole je indexováno od 0
+    
+    if (waveIndex < waveConfigurations.length) {
+        // Použití definované konfigurace vlny
+        gameState.currentWaveConfig = waveConfigurations[waveIndex];
+        gameState.enemyQueue = prepareEnemyQueue(gameState.currentWaveConfig);
+        
+        // Nastavení starých vlastností pro zpětnou kompatibilitu
+        gameState.enemiesToSpawn = gameState.enemyQueue.length;
+        gameState.spawnCounter = 0;
+        
+        // Kontrola, zda vlna obsahuje bosse
+        if (gameState.currentWaveConfig.boss) {
+            gameState.bossPending = true;
+            gameState.bossConfig = gameState.currentWaveConfig.boss;
+        } else {
+            gameState.bossPending = false;
+            gameState.bossConfig = null;
+        }
+    } else {
+        // Fallback pro případ, že konfigurace vlny není definována
+        // Použití původního systému generování nepřátel
+        const enemyCount = Math.floor((8 + gameState.wave * 4) * gameState.waveModifier);
+        gameState.enemiesToSpawn = enemyCount;
+        gameState.spawnCounter = 0;
+        
+        // Vytvoření fronty standardních nepřátel
+        gameState.enemyQueue = Array(enemyCount).fill().map(() => ({
+            type: 'standard',
+            spawnDelay: 900
+        }));
+        
+        // Žádný boss
+        gameState.bossPending = false;
+        gameState.bossConfig = null;
+    }
+    
+    // Nastavení časovače pro spawnování
+    gameState.timeSinceLastSpawn = 0;
     
     updateUI();
     
@@ -115,12 +229,25 @@ export function update(deltaTime) {
     // Update screen flash effect
     updateScreenFlash(deltaTime);
 
-    // Enemy Spawning
-    if (gameState.state === 'wave_inprogress' && gameState.spawnCounter < gameState.enemiesToSpawn) {
+    // Enemy Spawning - upravená logika pro nový systém vln
+    if (gameState.state === 'wave_inprogress') {
         gameState.timeSinceLastSpawn += deltaTime;
-        if (gameState.timeSinceLastSpawn >= gameState.spawnInterval) {
-            spawnEnemy();
-            gameState.timeSinceLastSpawn = 0;
+        
+        // Kontrola, zda máme nepřátele ve frontě
+        if (gameState.enemyQueue.length > 0) {
+            const nextEnemyDelay = gameState.enemyQueue[0].spawnDelay;
+            
+            if (gameState.timeSinceLastSpawn >= nextEnemyDelay) {
+                spawnEnemy();
+                gameState.timeSinceLastSpawn = 0;
+            }
+        } 
+        // Pokud je fronta prázdná, ale čekáme na bosse
+        else if (gameState.bossPending && gameState.bossConfig) {
+            if (gameState.timeSinceLastSpawn >= gameState.bossConfig.spawnDelay) {
+                spawnEnemy(); // Tato funkce nyní zpracovává i spawnování bossů
+                gameState.timeSinceLastSpawn = 0;
+            }
         }
     }
 
@@ -154,10 +281,11 @@ export function update(deltaTime) {
     gameState.particles = gameState.particles.filter(p => p.life > 0 && p.size >= 1);
     gameState.floatingTexts = gameState.floatingTexts.filter(text => text.life > 0);
 
-    // Check Wave End
+    // Check Wave End - upravená logika pro kontrolu konce vlny
     if (gameState.state === 'wave_inprogress' && 
         gameState.enemies.length === 0 && 
-        gameState.spawnCounter === gameState.enemiesToSpawn) {
+        gameState.enemyQueue.length === 0 &&
+        !gameState.bossPending) {
         gameState.state = 'waiting';
         
         const { startWaveButton } = getUIElements();

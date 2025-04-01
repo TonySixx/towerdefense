@@ -2,28 +2,70 @@
 import { getCanvasCoords, lerpColor } from '../utils.js';
 import { TILE_SIZE } from '../constants.js';
 import { gameState, updateUI } from '../gameLogic.js';
+import { enemyTypes, bossTypes } from '../enemyTypes.js';
 
 class Enemy {
-    constructor(waveNum, healthModifier = 1.0) {
+    constructor(waveNum, healthModifier = 1.0, enemyType = 'standard', isBoss = false) {
+        // Určení typu nepřítele
+        this.enemyType = enemyType;
+        this.isBoss = isBoss;
+        
+        // Získání konfigurace podle typu
+        const enemyConfig = isBoss ? bossTypes[enemyType] : enemyTypes[enemyType] || enemyTypes.standard;
+        
+        // Nastavení základních vlastností
         this.pathIndex = 0;
         const startPos = getCanvasCoords(gameState.currentPath[0].x, gameState.currentPath[0].y);
         this.x = startPos.x;
         this.y = startPos.y;
-        this.baseHealth = 60; // Base health value
-        this.healthGrowth = 1.22; // Health growth per wave
-        this.maxHealth = Math.floor(this.baseHealth * Math.pow(this.healthGrowth, waveNum - 1) * healthModifier);
+        
+        // Nastavení životů na základě typu nepřítele a čísla vlny
+        this.baseHealth = 60; // Základní hodnota životů
+        this.healthGrowth = 1.22; // Růst životů s každou vlnou
+        this.maxHealth = Math.floor(
+            this.baseHealth * 
+            Math.pow(this.healthGrowth, waveNum - 1) * 
+            healthModifier * 
+            enemyConfig.healthModifier
+        );
         this.health = this.maxHealth;
-        this.speed = 60 + (waveNum * 2.5); // Speed in pixels per second
-        this.value = 5 + waveNum; // Money rewarded when killed
-        this.size = TILE_SIZE * 0.35 + Math.random() * 3; // Size with variation
-        this.color = '#e56b6f'; // Base color (reddish)
-        this.darkerColor = '#b54d4f'; // Darker color for gradient/low health
+        
+        // Nastavení rychlosti na základě typu nepřítele a čísla vlny
+        this.speed = (60 + (waveNum * 2.5)) * enemyConfig.speedModifier;
+        
+        // Nastavení odměny za zabití
+        this.value = Math.ceil((5 + waveNum) * enemyConfig.valueModifier);
+        
+        // Nastavení velikosti podle typu nepřítele
+        this.size = (TILE_SIZE * 0.35 + Math.random() * 3) * enemyConfig.sizeModifier;
+        
+        // Nastavení barev podle typu nepřítele
+        this.color = enemyConfig.color;
+        this.darkerColor = enemyConfig.darkerColor;
+        
+        // Stav nepřítele
         this.isDead = false;
         this.reachedEnd = false;
         this.processed = false;
-        // Pulsation effect
+        
+        // Efekt pulzace
         this.pulseTimer = Math.random() * 1000;
-        this.pulseSpeed = 800 + Math.random() * 400; // ms per cycle
+        this.pulseSpeed = 800 + Math.random() * 400; // ms na cyklus
+        
+        // Speciální efekty pro bossy
+        if (this.isBoss) {
+            // Bossy mají silnější pulzaci
+            this.pulseIntensity = 0.15; // 3x silnější než běžní nepřátelé
+            // Bossy mají také efekt rotace koruny
+            this.crownRotation = 0;
+            this.crownRotationSpeed = 0.5 + Math.random() * 0.5; // Rychlost rotace
+            // Bossy mají efekt záře
+            this.glowSize = this.size * 1.2;
+            this.glowOpacity = 0.5;
+        } else {
+            // Běžné nastavení pulzace pro běžné nepřátele
+            this.pulseIntensity = 0.05;
+        }
     }
 
     move(deltaTime) {
@@ -65,6 +107,13 @@ class Enemy {
 
         // Update pulse timer for visual effect
         this.pulseTimer += deltaTime;
+        
+        // Aktualizace rotace koruny pro bossy
+        if (this.isBoss) {
+            this.crownRotation += this.crownRotationSpeed * (deltaTime / 1000);
+            // Zajistíme, aby úhel byl vždy v rozmezí 0-360
+            this.crownRotation = this.crownRotation % (2 * Math.PI);
+        }
     }
 
     takeDamage(amount, onDeath = null) {
@@ -94,9 +143,28 @@ class Enemy {
 
         const healthPercent = this.health / this.maxHealth;
 
-        // Pulsation effect
-        const pulseFactor = 1.0 + Math.sin(this.pulseTimer / this.pulseSpeed * Math.PI * 2) * 0.05;
+        // Pulsation effect - používáme pulseIntensity podle typu nepřítele
+        const pulseFactor = 1.0 + Math.sin(this.pulseTimer / this.pulseSpeed * Math.PI * 2) * this.pulseIntensity;
         const currentSize = this.size * pulseFactor;
+        
+        // Speciální efekt záře pro bossy
+        if (this.isBoss) {
+            // Glow effect (záře) pro bossy
+            const glowSize = this.glowSize * (1.0 + Math.sin(this.pulseTimer / this.pulseSpeed * Math.PI * 2) * 0.1);
+            const glowGradient = ctx.createRadialGradient(
+                this.x, this.y, currentSize * 0.5,
+                this.x, this.y, glowSize
+            );
+            
+            // Záře má stejnou barvu jako nepřítel, ale s průhledností
+            glowGradient.addColorStop(0, this.color.replace(')', ', ' + this.glowOpacity + ')').replace('rgb', 'rgba'));
+            glowGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            
+            ctx.fillStyle = glowGradient;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, glowSize, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
         // Gradient based on health
         const grad = ctx.createRadialGradient(this.x, this.y, currentSize * 0.1, this.x, this.y, currentSize);
@@ -114,6 +182,11 @@ class Enemy {
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
         ctx.lineWidth = 1;
         ctx.stroke();
+        
+        // Vykreslení speciálních prvků pro bossy
+        if (this.isBoss) {
+            this.drawBossFeatures(ctx, currentSize);
+        }
 
         // Health bar
         const healthBarWidth = Math.max(15, this.size * 1.2);
@@ -138,6 +211,132 @@ class Enemy {
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.lineWidth = 1;
         ctx.strokeRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
+        
+        // Pro bossy přidáme štítek s názvem
+        if (this.isBoss) {
+            this.drawBossLabel(ctx, currentSize);
+        }
+    }
+    
+    // Nová metoda pro vykreslení speciálních prvků bossů
+    drawBossFeatures(ctx, currentSize) {
+        // Uložení aktuálního stavu kontextu
+        ctx.save();
+        
+        // 1. Vykreslení koruny
+        // Transformace kontextu pro rotaci koruny
+        ctx.translate(this.x, this.y - currentSize);
+        ctx.rotate(this.crownRotation);
+        
+        // Vykreslení koruny
+        const crownWidth = currentSize * 0.8;
+        const crownHeight = currentSize * 0.5;
+        const crownX = -crownWidth / 2;
+        const crownY = -crownHeight * 1.2;
+        
+        // Pozadí koruny
+        ctx.fillStyle = '#ffd700'; // Zlatá barva
+        ctx.beginPath();
+        ctx.moveTo(crownX, crownY + crownHeight);
+        ctx.lineTo(crownX + crownWidth * 0.2, crownY + crownHeight * 0.3);
+        ctx.lineTo(crownX + crownWidth * 0.4, crownY + crownHeight);
+        ctx.lineTo(crownX + crownWidth * 0.6, crownY + crownHeight * 0.3);
+        ctx.lineTo(crownX + crownWidth * 0.8, crownY + crownHeight);
+        ctx.lineTo(crownX + crownWidth, crownY + crownHeight * 0.3);
+        ctx.lineTo(crownX + crownWidth, crownY + crownHeight);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Okraj koruny
+        ctx.strokeStyle = '#b8860b'; // Tmavší zlatá barva
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        // Body koruny - trojúhelníky
+        ctx.fillStyle = '#ff5555'; // Červené body koruny
+        for (let i = 0; i < 3; i++) {
+            const pointX = crownX + crownWidth * (0.25 + i * 0.25);
+            const pointY = crownY + crownHeight * 0.3;
+            
+            ctx.beginPath();
+            ctx.arc(pointX, pointY, crownWidth * 0.08, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Obnovení původního stavu kontextu
+        ctx.restore();
+        
+        // 2. Přidání stínu pod bosse
+        // Stín pod bossem pro zdůraznění
+        ctx.beginPath();
+        const shadowGradient = ctx.createRadialGradient(
+            this.x, this.y + currentSize * 0.8, 0,
+            this.x, this.y + currentSize * 0.8, currentSize * 1.5
+        );
+        shadowGradient.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
+        shadowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        
+        ctx.fillStyle = shadowGradient;
+        ctx.ellipse(this.x, this.y + currentSize * 0.8, currentSize * 1.5, currentSize * 0.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // Nová metoda pro vykreslení štítku s názvem bosse
+    drawBossLabel(ctx, currentSize) {
+        // Získání názvu bosse
+        const bossConfig = bossTypes[this.enemyType];
+        const bossName = bossConfig ? bossConfig.name : "BOSS";
+        
+        // Nastavení fontu a měření šířky textu
+        ctx.font = 'bold 14px Arial';
+        const textWidth = ctx.measureText(bossName).width;
+        
+        // Vykreslení pozadí štítku
+        const padding = 4;
+        const labelX = this.x - textWidth / 2 - padding;
+        const labelY = this.y - currentSize - 20;
+        const labelWidth = textWidth + padding * 2;
+        const labelHeight = 20;
+        const radius = 4; // Radius pro zaoblené rohy
+        
+        // Pozadí štítku s průhledností - implementace zaoblených rohů
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.beginPath();
+        
+        // Místo ctx.roundRect použijeme vlastní implementaci zaoblených rohů
+        // Kreslení po směru hodinových ručiček začínajícím od levého horního rohu
+        // Levý horní roh
+        ctx.moveTo(labelX + radius, labelY);
+        // Horní hrana
+        ctx.lineTo(labelX + labelWidth - radius, labelY);
+        // Pravý horní roh
+        ctx.arcTo(labelX + labelWidth, labelY, labelX + labelWidth, labelY + radius, radius);
+        // Pravá hrana
+        ctx.lineTo(labelX + labelWidth, labelY + labelHeight - radius);
+        // Pravý dolní roh
+        ctx.arcTo(labelX + labelWidth, labelY + labelHeight, labelX + labelWidth - radius, labelY + labelHeight, radius);
+        // Dolní hrana
+        ctx.lineTo(labelX + radius, labelY + labelHeight);
+        // Levý dolní roh
+        ctx.arcTo(labelX, labelY + labelHeight, labelX, labelY + labelHeight - radius, radius);
+        // Levá hrana
+        ctx.lineTo(labelX, labelY + radius);
+        // Levý horní roh (dokončení)
+        ctx.arcTo(labelX, labelY, labelX + radius, labelY, radius);
+        
+        ctx.closePath();
+        ctx.fill();
+        
+        // Okraj štítku
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Vykreslení textu
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(bossName, this.x, labelY + labelHeight / 2);
     }
 }
 
