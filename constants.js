@@ -324,13 +324,13 @@ export const towerTypes = {
         levels: [
             {
                 level: 1,
-                cost: 90, 
+                cost: 130, 
                 range: 120, 
                 damage: 10, 
                 fireRate: 600, 
                 projectileSpeed: 15,
-                sellValue: 63, // 70% return value
-                upgradePrice: 70,
+                sellValue: 91, // 70% return value
+                upgradePrice: 90,
                 colorBase: '#29B6F6', // Light blue
                 colorTop: '#E1F5FE',  // Very light blue
                 colorGun: '#0288D1',  // Medium blue
@@ -339,20 +339,20 @@ export const towerTypes = {
                 // Special effect for level 1
                 extraFeatures: {
                     freezeEffect: {
-                        freezeFactor: 0.8, // Slows to 70% of normal speed
+                        freezeFactor: 0.9, // Slows to 90% of normal speed
                         freezeDuration: 2000 // 2 seconds
                     }
                 }
             },
             {
                 level: 2,
-                cost: 160, // Original + upgrade
+                cost: 220, // Original + upgrade
                 range: 140, 
                 damage: 15, 
                 fireRate: 550, 
                 projectileSpeed: 16,
-                sellValue: 112, // 70% return value
-                upgradePrice: 100,
+                sellValue: 154, // 70% return value
+                upgradePrice: 140,
                 colorBase: '#0288D1', // Medium blue
                 colorTop: '#B3E5FC',  // Light blue
                 colorGun: '#01579B',  // Dark blue
@@ -361,19 +361,19 @@ export const towerTypes = {
                 // Special effect for level 2
                 extraFeatures: {
                     freezeEffect: {
-                        freezeFactor: 0.6, // Slows to 50% of normal speed
+                        freezeFactor: 0.8, // Slows to 70% of normal speed
                         freezeDuration: 3000 // 3 seconds
                     }
                 }
             },
             {
                 level: 3,
-                cost: 260, // Total investment
+                cost: 360, // Total investment
                 range: 160, 
                 damage: 25, 
                 fireRate: 500, 
                 projectileSpeed: 18,
-                sellValue: 182, // 70% return value
+                sellValue: 252, // 70% return value
                 upgradePrice: 0, // Max level
                 colorBase: '#01579B', // Dark blue
                 colorTop: '#81D4FA',  // Light blue
@@ -383,11 +383,11 @@ export const towerTypes = {
                 // Special effects for level 3
                 extraFeatures: {
                     freezeEffect: {
-                        freezeFactor: 0.4, // Slows to 30% of normal speed
+                        freezeFactor: 0.7, // Slows to 50% of normal speed
                         freezeDuration: 4000, // 4 seconds
                         areaFreeze: {
                             range: 60, // Range for area effect
-                            freezeFactor: 0.8, // Weaker slow for area effect
+                            freezeFactor: 0.9, // Weaker slow for area effect
                             freezeDuration: 2000 // Shorter duration for area effect
                         }
                     }
@@ -395,7 +395,7 @@ export const towerTypes = {
             }
         ],
         // For backward compatibility keeping level 1 properties
-        cost: 90, range: 120, damage: 10, fireRate: 600, projectileSpeed: 15,
+        cost: 130, range: 120, damage: 10, fireRate: 600, projectileSpeed: 15,
         colorBase: '#29B6F6', colorTop: '#E1F5FE', colorGun: '#0288D1',
         projectileColor: '#80D8FF', projectileSize: 4
     }

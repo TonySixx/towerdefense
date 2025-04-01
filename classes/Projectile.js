@@ -382,7 +382,7 @@ class Projectile {
         // Choose the appropriate drawing method based on special effects
         if (this.specialEffects) {
             if (this.specialEffects.chainLightning) {
-                this.drawElectricEffect(ctx);
+                this.drawRailgunEffect(ctx);
                 return;
             } else if (this.specialEffects.burnDamage) {
                 this.drawBurnEffect(ctx);
