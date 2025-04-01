@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,19 +12,19 @@
         <div class="menu-content">
             <h1 class="game-title">Just Another TD</h1>
             <div class="map-selection">
-                <h2>Vyberte obtížnost mapy:</h2>
+                <h2>Select Map Difficulty:</h2>
                 <div class="map-buttons">
                     <button class="map-button" data-map="easy">
-                        <div class="map-difficulty">Lehká</div>
-                        <div class="map-description">Jednoduchá cesta, více peněz, slabší nepřátelé</div>
+                        <div class="map-difficulty">Easy</div>
+                        <div class="map-description">Simple path, more money, weaker enemies</div>
                     </button>
                     <button class="map-button" data-map="medium">
-                        <div class="map-difficulty">Střední</div>
-                        <div class="map-description">Běžná obtížnost, vyvážená hra</div>
+                        <div class="map-difficulty">Medium</div>
+                        <div class="map-description">Standard difficulty, balanced gameplay</div>
                     </button>
                     <button class="map-button" data-map="hard">
-                        <div class="map-difficulty">Těžká</div>
-                        <div class="map-description">Složitá cesta, méně peněz, silnější nepřátelé</div>
+                        <div class="map-difficulty">Hard</div>
+                        <div class="map-description">Complex path, less money, stronger enemies</div>
                     </button>
                 </div>
             </div>
@@ -39,25 +39,25 @@
             <div id="tower-sidebar">
                 <div id="tower-actions" style="display: none;">
                     <div id="selected-tower-details">
-                        <h3>Detaily věže</h3>
-                        <div class="tower-stat">Typ: <span id="detail-type">-</span></div>
-                        <div class="tower-stat">Úroveň: <span id="detail-level">-</span></div>
-                        <div class="tower-stat">Poškození: <span id="detail-damage">-</span></div>
-                        <div class="tower-stat">Rychlost: <span id="detail-fire-rate">-</span></div>
-                        <div class="tower-stat">Dosah: <span id="detail-range">-</span></div>
+                        <h3>Tower Details</h3>
+                        <div class="tower-stat">Type: <span id="detail-type">-</span></div>
+                        <div class="tower-stat">Level: <span id="detail-level">-</span></div>
+                        <div class="tower-stat">Damage: <span id="detail-damage">-</span></div>
+                        <div class="tower-stat">Rate: <span id="detail-fire-rate">-</span></div>
+                        <div class="tower-stat">Range: <span id="detail-range">-</span></div>
                     </div>
                     <div id="tower-upgrade-info" style="display: none;">
-                        <h3>Vylepšení na úroveň <span id="upgrade-level">-</span></h3>
-                        <div class="tower-stat">Nové poškození: <span id="upgrade-damage">-</span></div>
-                        <div class="tower-stat">Nová rychlost: <span id="upgrade-fire-rate">-</span></div>
-                        <div class="tower-stat">Nový dosah: <span id="upgrade-range">-</span></div>
-                        <div class="tower-stat special-feature">Speciální efekt: <span id="upgrade-special">-</span></div>
-                        <div class="tower-price">Cena: <span id="upgrade-price">-</span></div>
+                        <h3>Upgrade to level <span id="upgrade-level">-</span></h3>
+                        <div class="tower-stat">New damage: <span id="upgrade-damage">-</span></div>
+                        <div class="tower-stat">New rate: <span id="upgrade-fire-rate">-</span></div>
+                        <div class="tower-stat">New range: <span id="upgrade-range">-</span></div>
+                        <div class="tower-stat special-feature">Special effect: <span id="upgrade-special">-</span></div>
+                        <div class="tower-price">Cost: <span id="upgrade-price">-</span></div>
                     </div>
                     <div id="tower-action-buttons">
-                        <button id="upgrade-tower-button" disabled>Vylepšit</button>
-                        <button id="sell-tower-button">Prodat (<span id="sell-value">-</span>)</button>
-                        <button id="cancel-selection-button">Zrušit výběr</button>
+                        <button id="upgrade-tower-button" disabled>Upgrade</button>
+                        <button id="sell-tower-button">Sell (<span id="sell-value">-</span>)</button>
+                        <button id="cancel-selection-button">Cancel selection</button>
                     </div>
                 </div>
             </div>
@@ -65,31 +65,31 @@
         
         <div id="ui">
             <div id="stats">
-                <span>Vlna: <span id="wave">0</span></span>
-                <span>Peníze: <span id="money">100</span></span>
-                <span>Životy: <span id="health">20</span></span>
+                <span>Wave: <span id="wave">0</span></span>
+                <span>Money: <span id="money">100</span></span>
+                <span>Lives: <span id="health">20</span></span>
             </div>
             <div id="controls">
                 <div id="tower-selection">
-                    <button class="tower-button" data-type="gun" data-cost="50">Kulomet (50)</button>
+                    <button class="tower-button" data-type="gun" data-cost="50">Machine Gun (50)</button>
                     <button class="tower-button" data-type="laser" data-cost="75">Laser (75)</button>
-                    <button class="tower-button" data-type="sniper" data-cost="100">Odstřelovač (100)</button>
-                    <button class="tower-button" data-type="railgun" data-cost="80">Railgun (80)</button>
+                    <button class="tower-button" data-type="sniper" data-cost="100">Sniper (100)</button>
+                    <button class="tower-button" data-type="railgun" data-cost="110">Railgun (110)</button>
                 </div>
-                <button id="startWaveButton">Start Vlna</button>
+                <button id="startWaveButton">Start Wave</button>
             </div>
-            <div id="selected-tower-info">Vybraná věž: <span id="selected-tower-type">Žádná</span></div>
+            <div id="selected-tower-info">Selected tower: <span id="selected-tower-type">None</span></div>
         </div>
         
         <div id="game-over" style="display: none;">
-            <h2>Konec Hry!</h2>
-            <p>Dosáhl jsi vlny: <span id="final-wave">0</span></p>
-            <button id="retry-button">Hrát znovu</button>
+            <h2>Game Over!</h2>
+            <p>You reached wave: <span id="final-wave">0</span></p>
+            <button id="retry-button">Play Again</button>
         </div>
         <div id="victory" style="display: none;">
-            <h2>Vítězství!</h2>
-            <p>Dokončil jsi všechny vlny!</p>
-            <button id="retry-button">Hrát znovu</button>
+            <h2>Victory!</h2>
+            <p>You completed all waves!</p>
+            <button id="retry-button">Play Again</button>
         </div>
     </div>
 

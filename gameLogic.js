@@ -117,7 +117,7 @@ export function spawnEnemy() {
             createFloatingText(
                 canvas.width / 2, 
                 canvas.height / 2, 
-                `BOSS PŘICHÁZÍ!`, 
+                `BOSS IS COMING!`, 
                 '#ff0000', 
                 32, 
                 4000
@@ -308,7 +308,7 @@ export function update(deltaTime) {
         createFloatingText(
             canvas.width / 2, 
             canvas.height / 2 + 20, 
-            `VLNA DOKONČENA!`, 
+            `WAVE COMPLETED!`, 
             '#ffffff', 
             32, 
             4000
@@ -388,7 +388,7 @@ export function upgradeTower() {
             createFloatingText(
                 tower.x, 
                 tower.y - 20, 
-                'VYLEPŠENO', 
+                'UPGRADED', 
                 '#4caf50', 
                 20, 
                 2000
@@ -508,45 +508,45 @@ function updateTowerActionUI() {
         let specialText = '';
         if (nextLevelData.extraFeatures) {
             if (nextLevelData.extraFeatures.doubleBarrel) {
-                specialText += 'Dvojitá hlaveň, ';
+                specialText += 'Double Barrel, ';
             }
             if (nextLevelData.extraFeatures.metallic) {
-                specialText += 'Metalické provedení, ';
+                specialText += 'Metallic Construction, ';
             }
             if (nextLevelData.extraFeatures.criticalChance) {
-                specialText += `${nextLevelData.extraFeatures.criticalChance * 100}% šance na kritický zásah, `;
+                specialText += `${nextLevelData.extraFeatures.criticalChance * 100}% chance of critical hit, `;
             }
             if (nextLevelData.extraFeatures.laserBeam) {
-                specialText += 'Laserový paprsek, ';
+                specialText += 'Laser Beam, ';
             }
             if (nextLevelData.extraFeatures.dualBeam) {
-                specialText += 'Dvojitý paprsek, ';
+                specialText += 'Dual Beam, ';
             }
             if (nextLevelData.extraFeatures.burnEffect) {
-                specialText += 'Spalující efekt, ';
+                specialText += 'Burning Effect, ';
             }
             if (nextLevelData.extraFeatures.scope) {
-                specialText += 'Zaměřovač, ';
+                specialText += 'Scope, ';
             }
             if (nextLevelData.extraFeatures.armorPiercing) {
-                specialText += `${nextLevelData.extraFeatures.armorPiercing * 100}% ignorování armor, `;
+                specialText += `${nextLevelData.extraFeatures.armorPiercing * 100}% ignoring armor, `;
             }
             if (nextLevelData.extraFeatures.headshotChance) {
-                specialText += `${nextLevelData.extraFeatures.headshotChance * 100}% šance na headshot, `;
+                specialText += `${nextLevelData.extraFeatures.headshotChance * 100}% chance of headshot, `;
             }
             // Přidání speciálních efektů pro railgun
             if (nextLevelData.extraFeatures.chainLightning) {
-                specialText += `Řetězový blesk (${nextLevelData.extraFeatures.chainLightning.damage} poškození, ${nextLevelData.extraFeatures.chainLightning.targets} cíle), `;
+                specialText += `Chain Lightning (${nextLevelData.extraFeatures.chainLightning.damage} damage, ${nextLevelData.extraFeatures.chainLightning.targets} targets), `;
             }
             if (nextLevelData.extraFeatures.homingEffect) {
-                specialText += `Samonaváděcí projektily, `;
+                specialText += `Homing Projectiles, `;
             }
             
             // Odstranění poslední čárky a mezery
             specialText = specialText.replace(/, $/, '');
         }
         
-        upgradeSpecial.textContent = specialText || 'Žádný';
+        upgradeSpecial.textContent = specialText || 'None';
         upgradePrice.textContent = `${tower.getUpgradePrice()}`;
         
         // Aktivace tlačítka pro upgrade, pokud má hráč dostatek peněz
@@ -592,9 +592,9 @@ export function updateUI() {
     // Update selected tower info
     if (gameState.selectedTowerType) {
         const stats = towerTypes[gameState.selectedTowerType];
-        selectedTowerTypeEl.textContent = `${gameState.selectedTowerType.toUpperCase()} | Cena: ${stats.cost}$ | DMG: ${stats.damage} | Rychl.: ${stats.fireRate}ms | Dosah: ${stats.range}`;
+        selectedTowerTypeEl.textContent = `${gameState.selectedTowerType.toUpperCase()} | Cost: ${stats.cost}$ | DMG: ${stats.damage} | Rate: ${stats.fireRate}ms | Range: ${stats.range}`;
     } else {
-        selectedTowerTypeEl.textContent = 'Žádná';
+        selectedTowerTypeEl.textContent = 'None';
     }
     
     // Update tower buttons
@@ -613,10 +613,10 @@ export function updateUI() {
         // Add visual affordance
         if (gameState.money >= cost) {
             button.style.opacity = '1';
-            button.title = `Cena: ${cost}$`;
+            button.title = `Cost: ${cost}$`;
         } else {
             button.style.opacity = '0.6';
-            button.title = `Nedostatek prostředků (Cena: ${cost}$)`;
+            button.title = `Insufficient funds (Cost: ${cost}$)`;
         }
     });
     

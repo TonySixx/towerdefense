@@ -51,7 +51,7 @@ export const MAX_WAVES = 20;
 // Tower Definitions
 export const towerTypes = {
     gun: {
-        name: "Kulomet",
+        name: "Machine Gun",
         levels: [
             {
                 level: 1,
@@ -60,7 +60,7 @@ export const towerTypes = {
                 damage: 12, 
                 fireRate: 450, 
                 projectileSpeed: 8,
-                sellValue: 35, // 70% návratnost
+                sellValue: 35, // 70% return value
                 upgradePrice: 40,
                 colorBase: '#607d8b', 
                 colorTop: '#b0bec5', 
@@ -70,46 +70,46 @@ export const towerTypes = {
             },
             {
                 level: 2,
-                cost: 90, // původní + upgrade
+                cost: 90, // original + upgrade
                 range: 130, 
                 damage: 18, 
                 fireRate: 400, 
                 projectileSpeed: 9,
-                sellValue: 63, // 70% návratnost
+                sellValue: 63, // 70% return value
                 upgradePrice: 60,
                 colorBase: '#455a64', 
                 colorTop: '#cfd8dc', 
                 colorGun: '#263238',
                 projectileColor: '#e0e0e0', 
                 projectileSize: 5,
-                // Speciální efekt pro level 2
+                // Special effect for level 2
                 extraFeatures: {
                     doubleBarrel: true
                 }
             },
             {
                 level: 3,
-                cost: 150, // celková investice
+                cost: 150, // total investment
                 range: 150, 
                 damage: 25, 
                 fireRate: 350, 
                 projectileSpeed: 10,
-                sellValue: 105, // 70% návratnost
-                upgradePrice: 0, // maximální úroveň
+                sellValue: 105, // 70% return value
+                upgradePrice: 0, // maximum level
                 colorBase: '#263238', 
                 colorTop: '#eceff1', 
                 colorGun: '#000a12',
                 projectileColor: '#bbdefb', 
                 projectileSize: 6,
-                // Speciální efekt pro level 3
+                // Special effect for level 3
                 extraFeatures: {
                     doubleBarrel: true,
                     metallic: true,
-                    criticalChance: 0.15 // 15% šance na kritický zásah (2x damage)
+                    criticalChance: 0.15 // 15% chance of critical hit (2x damage)
                 }
             }
         ],
-        // Pro zpětnou kompatibilitu ponecháme základní vlastnosti úrovně 1
+        // For backward compatibility we keep basic properties of level 1
         cost: 50, range: 110, damage: 12, fireRate: 450, projectileSpeed: 8,
         colorBase: '#607d8b', colorTop: '#b0bec5', colorGun: '#455a64',
         projectileColor: '#ffffff', projectileSize: 4
@@ -124,7 +124,7 @@ export const towerTypes = {
                 damage: 8, 
                 fireRate: 300, 
                 projectileSpeed: 12,
-                sellValue: 52, // 70% návratnost
+                sellValue: 52, // 70% return value
                 upgradePrice: 55,
                 colorBase: '#d32f2f', 
                 colorTop: '#ffcdd2', 
@@ -134,52 +134,52 @@ export const towerTypes = {
             },
             {
                 level: 2,
-                cost: 130, // původní + upgrade
+                cost: 130, // original + upgrade
                 range: 150, 
                 damage: 12, 
                 fireRate: 250, 
                 projectileSpeed: 14,
-                sellValue: 91, // 70% návratnost
+                sellValue: 91, // 70% return value
                 upgradePrice: 80,
                 colorBase: '#b71c1c', 
                 colorTop: '#ef9a9a', 
                 colorGun: '#7f0000',
                 projectileColor: '#ff5252', 
                 projectileSize: 6,
-                // Speciální efekt pro level 2
+                // Special effect for level 2
                 extraFeatures: {
-                    laserBeam: true // vizuální efekt paprsku
+                    laserBeam: true // visual beam effect
                 }
             },
             {
                 level: 3,
-                cost: 210, // celková investice
+                cost: 210, // total investment
                 range: 170, 
                 damage: 18, 
                 fireRate: 200, 
                 projectileSpeed: 16,
-                sellValue: 147, // 70% návratnost
-                upgradePrice: 0, // maximální úroveň
+                sellValue: 147, // 70% return value
+                upgradePrice: 0, // maximum level
                 colorBase: '#7f0000', 
                 colorTop: '#ef5350', 
                 colorGun: '#560027',
                 projectileColor: '#ff1744', 
                 projectileSize: 7,
-                // Speciální efekt pro level 3
+                // Special effect for level 3
                 extraFeatures: {
                     laserBeam: true,
                     dualBeam: true,
-                    burnEffect: true // způsobuje dodatečné poškození v čase
+                    burnEffect: true // causes additional damage over time
                 }
             }
         ],
-        // Pro zpětnou kompatibilitu ponecháme základní vlastnosti úrovně 1
+        // For backward compatibility we keep basic properties of level 1
         cost: 75, range: 130, damage: 8, fireRate: 300, projectileSpeed: 12,
         colorBase: '#d32f2f', colorTop: '#ffcdd2', colorGun: '#b71c1c',
         projectileColor: '#ff8a80', projectileSize: 5
     },
     sniper: {
-        name: "Odstřelovač",
+        name: "Sniper",
         levels: [
             {
                 level: 1,
@@ -188,7 +188,7 @@ export const towerTypes = {
                 damage: 45, 
                 fireRate: 1800, 
                 projectileSpeed: 18,
-                sellValue: 70, // 70% návratnost
+                sellValue: 70, // 70% return value
                 upgradePrice: 80,
                 colorBase: '#388e3c', 
                 colorTop: '#c8e6c9', 
@@ -198,47 +198,47 @@ export const towerTypes = {
             },
             {
                 level: 2,
-                cost: 180, // původní + upgrade
+                cost: 180, // original + upgrade
                 range: 260, 
                 damage: 70, 
                 fireRate: 1600, 
                 projectileSpeed: 20,
-                sellValue: 126, // 70% návratnost
+                sellValue: 126, // 70% return value
                 upgradePrice: 120,
                 colorBase: '#1b5e20', 
                 colorTop: '#a5d6a7', 
                 colorGun: '#003300',
                 projectileColor: '#69f0ae', 
                 projectileSize: 4,
-                // Speciální efekt pro level 2
+                // Special effect for level 2
                 extraFeatures: {
-                    scope: true, // vizuální efekt zaměřovače
-                    armorPiercing: 0.2 // ignoruje 20% armor nepřátel (připraveno pro budoucí vylepšení)
+                    scope: true, // visual scope effect
+                    armorPiercing: 0.2 // ignores 20% of enemy armor (prepared for future enhancements)
                 }
             },
             {
                 level: 3,
-                cost: 300, // celková investice
+                cost: 300, // total investment
                 range: 300, 
                 damage: 110, 
                 fireRate: 1400, 
                 projectileSpeed: 22,
-                sellValue: 210, // 70% návratnost
-                upgradePrice: 0, // maximální úroveň
+                sellValue: 210, // 70% return value
+                upgradePrice: 0, // maximum level
                 colorBase: '#003300', 
                 colorTop: '#81c784', 
                 colorGun: '#002200',
                 projectileColor: '#00e676', 
                 projectileSize: 5,
-                // Speciální efekt pro level 3
+                // Special effect for level 3
                 extraFeatures: {
                     scope: true,
-                    armorPiercing: 0.4, // ignoruje 40% armor nepřátel
-                    headshotChance: 0.2 // 20% šance na headshot (3x damage)
+                    armorPiercing: 0.4, // ignores 40% of enemy armor
+                    headshotChance: 0.2 // 20% chance of headshot (3x damage)
                 }
             }
         ],
-        // Pro zpětnou kompatibilitu ponecháme základní vlastnosti úrovně 1
+        // For backward compatibility we keep basic properties of level 1
         cost: 100, range: 220, damage: 45, fireRate: 1800, projectileSpeed: 18,
         colorBase: '#388e3c', colorTop: '#c8e6c9', colorGun: '#1b5e20',
         projectileColor: '#a5d6a7', projectileSize: 3
@@ -248,13 +248,13 @@ export const towerTypes = {
         levels: [
             {
                 level: 1,
-                cost: 80, 
+                cost: 110, 
                 range: 140, 
                 damage: 20, 
                 fireRate: 800, 
                 projectileSpeed: 20, // Extremely fast projectiles
-                sellValue: 56, // 70% return
-                upgradePrice: 65,
+                sellValue: 77, // 70% return
+                upgradePrice: 90,
                 colorBase: '#1E88E5', // Electric blue
                 colorTop: '#90CAF9',  // Light blue
                 colorGun: '#0D47A1',  // Dark blue
@@ -263,13 +263,13 @@ export const towerTypes = {
             },
             {
                 level: 2,
-                cost: 145, // Original + upgrade
+                cost: 200, // Original + upgrade
                 range: 160, 
                 damage: 30, 
                 fireRate: 750, 
                 projectileSpeed: 22,
-                sellValue: 102, // 70% return
-                upgradePrice: 90,
+                sellValue: 140, // 70% return
+                upgradePrice: 120,
                 colorBase: '#1565C0', // Darker blue
                 colorTop: '#64B5F6',  // Medium blue
                 colorGun: '#0D47A1',  // Dark blue
@@ -286,12 +286,12 @@ export const towerTypes = {
             },
             {
                 level: 3,
-                cost: 235, // Total investment
+                cost: 320, // Total investment
                 range: 180, 
                 damage: 45, 
                 fireRate: 700, 
                 projectileSpeed: 25, // Fastest projectile in game
-                sellValue: 165, // 70% return
+                sellValue: 224, // 70% return
                 upgradePrice: 0, // Max level
                 colorBase: '#0D47A1', // Very dark blue
                 colorTop: '#42A5F5',  // Medium-light blue
@@ -312,13 +312,13 @@ export const towerTypes = {
             }
         ],
         // For backward compatibility keeping level 1 properties
-        cost: 80, range: 140, damage: 20, fireRate: 800, projectileSpeed: 20,
+        cost: 110, range: 140, damage: 20, fireRate: 800, projectileSpeed: 20,
         colorBase: '#1E88E5', colorTop: '#90CAF9', colorGun: '#0D47A1',
         projectileColor: '#00E5FF', projectileSize: 3
     }
 };
 
-// Tower Status Definitions - pro vykreslování speciálních stavů věží
+// Tower Status Definitions - for drawing special tower states
 export const towerStatus = {
     selected: {
         color: 'rgba(255, 255, 255, 0.4)',
@@ -337,12 +337,12 @@ export const towerStatus = {
     }
 };
 
-// Maps Definition - tři různé mapy s různými obtížnostmi
+// Maps Definition - three different maps with varying difficulties
 export const maps = {
     easy: {
-        name: "Lehká",
+        name: "Easy",
         path: [
-            // Jednoduchá rovná cesta ve tvaru písmene L
+            // Simple straight L-shaped path
             { x: 0, y: 2 }, { x: 1, y: 2 }, { x: 2, y: 2 }, { x: 3, y: 2 }, { x: 4, y: 2 }, 
             { x: 5, y: 2 }, { x: 6, y: 2 }, { x: 7, y: 2 }, { x: 8, y: 2 }, { x: 9, y: 2 },
             { x: 10, y: 2 }, { x: 10, y: 3 }, { x: 10, y: 4 }, { x: 10, y: 5 }, { x: 10, y: 6 },
@@ -352,13 +352,13 @@ export const maps = {
         ],
         startMoney: 150,
         startHealth: 25,
-        enemyHealthModifier: 0.8, // Slabší nepřátelé
-        waveModifier: 0.9 // Méně nepřátel ve vlnách
+        enemyHealthModifier: 0.8, // Weaker enemies
+        waveModifier: 0.9 // Fewer enemies in waves
     },
     medium: {
-        name: "Střední",
+        name: "Medium",
         path: [
-            // Původní, středně složitá cesta - tuto ponecháme beze změny
+            // Original, medium complexity path - unchanged
             { x: 0, y: 3 }, { x: 1, y: 3 }, { x: 2, y: 3 }, { x: 3, y: 3 }, { x: 3, y: 4 },
             { x: 3, y: 5 }, { x: 4, y: 5 }, { x: 5, y: 5 }, { x: 6, y: 5 }, { x: 6, y: 4 },
             { x: 6, y: 3 }, { x: 7, y: 3 }, { x: 8, y: 3 }, { x: 8, y: 4 }, { x: 8, y: 5 },
@@ -368,13 +368,13 @@ export const maps = {
         ],
         startMoney: 100,
         startHealth: 20,
-        enemyHealthModifier: 1.0, // Standardní nepřátelé
-        waveModifier: 1.0 // Standardní vlny
+        enemyHealthModifier: 1.0, // Standard enemies
+        waveModifier: 1.0 // Standard waves
     },
     hard: {
-        name: "Těžká",
+        name: "Hard",
         path: [
-            // Komplexní cesta ve tvaru dvojitého Z
+            // Complex double Z-shaped path
             { x: 0, y: 2 }, { x: 1, y: 2 }, { x: 2, y: 2 }, { x: 3, y: 2 }, { x: 4, y: 2 },
             { x: 5, y: 2 }, { x: 6, y: 2 }, { x: 7, y: 2 }, { x: 8, y: 2 }, { x: 9, y: 2 },
             { x: 10, y: 2 }, { x: 11, y: 2 }, { x: 12, y: 2 }, { x: 13, y: 2 }, { x: 13, y: 3 },
@@ -387,10 +387,10 @@ export const maps = {
         ],
         startMoney: 90,
         startHealth: 15,
-        enemyHealthModifier: 1.2, // Silnější nepřátelé
-        waveModifier: 1.1 // Více nepřátel ve vlnách
+        enemyHealthModifier: 1.2, // Stronger enemies
+        waveModifier: 1.1 // More enemies in waves
     }
 };
 
-// Pro zpětnou kompatibilitu - výchozí cesta
+// For backward compatibility - default path
 export const path = maps.medium.path; 

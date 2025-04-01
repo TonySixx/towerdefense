@@ -1,149 +1,149 @@
-// enemyTypes.js - Definice typů nepřátel a bossů
+// enemyTypes.js - Definition of enemy types and bosses
 
-// Základní typy nepřátel
+// Basic enemy types
 export const enemyTypes = {
-    // Základní nepřítel s vyváženými statistikami
+    // Basic enemy with balanced stats
     standard: {
         name: "Standard",
-        healthModifier: 1.0,     // Standardní množství životů
-        speedModifier: 1.0,      // Standardní rychlost
-        sizeModifier: 1.0,       // Standardní velikost
-        valueModifier: 1.0,      // Standardní odměna
-        color: '#e56b6f',        // Červená barva
-        darkerColor: '#b54d4f',  // Tmavě červená barva
+        healthModifier: 1.0,     // Standard amount of health
+        speedModifier: 1.0,      // Standard speed
+        sizeModifier: 1.0,       // Standard size
+        valueModifier: 1.0,      // Standard reward
+        color: '#e56b6f',        // Red color
+        darkerColor: '#b54d4f',  // Dark red color
         isBoss: false
     },
     
-    // Rychlý, ale slabý nepřítel
+    // Fast but weak enemy
     fast: {
         name: "Fast",
-        healthModifier: 0.6,     // Méně životů
-        speedModifier: 1.7,      // Výrazně vyšší rychlost
-        sizeModifier: 0.8,       // O něco menší
-        valueModifier: 1.2,      // Mírně vyšší odměna
-        color: '#52b788',        // Zelená barva
-        darkerColor: '#2d6a4f',  // Tmavě zelená barva
+        healthModifier: 0.6,     // Less health
+        speedModifier: 1.7,      // Significantly higher speed
+        sizeModifier: 0.8,       // Slightly smaller
+        valueModifier: 1.2,      // Slightly higher reward
+        color: '#52b788',        // Green color
+        darkerColor: '#2d6a4f',  // Dark green color
         isBoss: false
     },
     
-    // Pomalý, ale odolný nepřítel
+    // Slow but resilient enemy
     tank: {
         name: "Tank",
-        healthModifier: 2.2,     // Výrazně více životů
-        speedModifier: 0.6,      // Podstatně nižší rychlost
-        sizeModifier: 1.3,       // Větší velikost
-        valueModifier: 1.5,      // Vyšší odměna
-        color: '#6d6875',        // Šedá barva
-        darkerColor: '#4a4e69',  // Tmavě šedá barva
+        healthModifier: 2.2,     // Significantly more health
+        speedModifier: 0.6,      // Substantially lower speed
+        sizeModifier: 1.3,       // Larger size
+        valueModifier: 1.5,      // Higher reward
+        color: '#6d6875',        // Gray color
+        darkerColor: '#4a4e69',  // Dark gray color
         isBoss: false
     },
     
-    // Velmi rychlý a malý nepřítel
+    // Very fast and small enemy
     swift: {
         name: "Swift",
-        healthModifier: 0.4,     // Velmi málo životů
-        speedModifier: 2.2,      // Extrémně vysoká rychlost
-        sizeModifier: 0.6,       // Velmi malý
-        valueModifier: 1.3,      // Vyšší odměna
-        color: '#48cae4',        // Světle modrá barva
-        darkerColor: '#0096c7',  // Tmavě modrá barva
+        healthModifier: 0.4,     // Very little health
+        speedModifier: 2.2,      // Extremely high speed
+        sizeModifier: 0.6,       // Very small
+        valueModifier: 1.3,      // Higher reward
+        color: '#48cae4',        // Light blue color
+        darkerColor: '#0096c7',  // Dark blue color
         isBoss: false
     },
     
-    // Vysoce odolný, ale pomalý nepřítel
+    // Highly resistant but slow enemy
     armored: {
         name: "Armored",
-        healthModifier: 3.0,     // Extrémně vysoké životy
-        speedModifier: 0.5,      // Velmi nízká rychlost
-        sizeModifier: 1.2,       // Větší velikost
-        valueModifier: 2.0,      // Vysoká odměna
-        color: '#cdb4db',        // Fialová barva
-        darkerColor: '#a2a3bb',  // Tmavě fialová barva
+        healthModifier: 3.0,     // Extremely high health
+        speedModifier: 0.5,      // Very low speed
+        sizeModifier: 1.2,       // Larger size
+        valueModifier: 2.0,      // High reward
+        color: '#cdb4db',        // Purple color
+        darkerColor: '#a2a3bb',  // Dark purple color
         isBoss: false
     },
     
-    // Vyváženější nepřítel kombinující rychlost a odolnost
+    // Balanced enemy combining speed and resistance
     hybrid: {
         name: "Hybrid",
-        healthModifier: 1.8,     // Téměř tak odolný jako tank
-        speedModifier: 1.4,      // Rychlejší než standard, ale ne tak rychlý jako fast typy
-        sizeModifier: 1.1,       // Mírně větší
-        valueModifier: 2.5,      // Vysoká odměna kvůli náročnosti
-        color: '#9d4edd',        // Fialová barva
-        darkerColor: '#5a189a',  // Tmavě fialová barva
+        healthModifier: 1.8,     // Almost as resistant as a tank
+        speedModifier: 1.4,      // Faster than standard, but not as fast as fast types
+        sizeModifier: 1.1,       // Slightly larger
+        valueModifier: 2.5,      // High reward due to difficulty
+        color: '#9d4edd',        // Purple color
+        darkerColor: '#5a189a',  // Dark purple color
         isBoss: false
     }
 };
 
-// Bossy (speciální nepřátelé na konci vln 5, 10 a 15)
+// Bosses (special enemies at the end of waves 5, 10 and 15)
 export const bossTypes = {
-    // Boss pro vlnu 5
+    // Boss for wave 5
     waveBoss5: {
         name: "Wave 5 Boss",
-        healthModifier: 5.0,     // 5x více životů než standardní nepřítel
-        speedModifier: 0.8,      // Mírně pomalejší
-        sizeModifier: 1.8,       // Výrazně větší
-        valueModifier: 5.0,      // 5x větší odměna
-        color: '#ef476f',        // Výrazně červená barva
-        darkerColor: '#c9184a',  // Tmavě červená barva
+        healthModifier: 5.0,     // 5x more health than standard enemy
+        speedModifier: 0.8,      // Slightly slower
+        sizeModifier: 1.8,       // Significantly larger
+        valueModifier: 5.0,      // 5x greater reward
+        color: '#ef476f',        // Bright red color
+        darkerColor: '#c9184a',  // Dark red color
         isBoss: true,
-        waveAppearance: 5,       // Boss se objeví ve vlně 5
-        spawnDelay: 3000         // Delší prodleva před spawnováním (v ms)
+        waveAppearance: 5,       // Boss appears in wave 5
+        spawnDelay: 3000         // Longer spawn delay (in ms)
     },
     
-    // Boss pro vlnu 10
+    // Boss for wave 10
     waveBoss10: {
         name: "Wave 10 Boss",
-        healthModifier: 12.0,    // 12x více životů
-        speedModifier: 0.7,      // Ještě pomalejší
-        sizeModifier: 2.0,       // Dvojnásobná velikost
-        valueModifier: 10.0,     // 10x větší odměna
-        color: '#ffd166',        // Zlatá barva
-        darkerColor: '#e29e21',  // Tmavě zlatá barva
+        healthModifier: 12.0,    // 12x more health
+        speedModifier: 0.7,      // Even slower
+        sizeModifier: 2.0,       // Double size
+        valueModifier: 10.0,     // 10x greater reward
+        color: '#ffd166',        // Gold color
+        darkerColor: '#e29e21',  // Dark gold color
         isBoss: true,
-        waveAppearance: 10,      // Boss se objeví ve vlně 10
-        spawnDelay: 4000         // Ještě delší prodleva (v ms)
+        waveAppearance: 10,      // Boss appears in wave 10
+        spawnDelay: 4000         // Even longer delay (in ms)
     },
     
-    // Finální boss pro vlnu 15
+    // Final boss for wave 15
     finalBoss: {
         name: "Final Boss",
-        healthModifier: 25.0,    // 25x více životů
-        speedModifier: 0.9,      // Průměrná rychlost
-        sizeModifier: 2.5,       // 2.5x větší velikost
-        valueModifier: 20.0,     // 20x větší odměna
-        color: '#6a0dad',        // Jasně fialová barva
-        darkerColor: '#3a015c',  // Tmavě fialová barva
+        healthModifier: 25.0,    // 25x more health
+        speedModifier: 0.9,      // Average speed
+        sizeModifier: 2.5,       // 2.5x larger size
+        valueModifier: 20.0,     // 20x greater reward
+        color: '#6a0dad',        // Bright purple color
+        darkerColor: '#3a015c',  // Dark purple color
         isBoss: true,
-        waveAppearance: 15,      // Boss se objeví ve vlně 15
-        spawnDelay: 5000         // Velmi dlouhá prodleva (v ms)
+        waveAppearance: 15,      // Boss appears in wave 15
+        spawnDelay: 5000         // Very long delay (in ms)
     },
     
-    // Ultimátní megaboss pro vlnu 20
+    // Ultimate megaboss for wave 20
     megaBoss: {
         name: "Mega Boss",
-        healthModifier: 40.0,    // 40x více životů než standard
-        speedModifier: 1.1,      // Mírně rychlejší než standard
-        sizeModifier: 3.0,       // 3x větší velikost
-        valueModifier: 40.0,     // 40x větší odměna
-        color: '#ff0000',        // Jasně červená barva
-        darkerColor: '#8b0000',  // Tmavě červená barva
+        healthModifier: 40.0,    // 40x more health than standard
+        speedModifier: 1.1,      // Slightly faster than standard
+        sizeModifier: 3.0,       // 3x larger size
+        valueModifier: 40.0,     // 40x greater reward
+        color: '#ff0000',        // Bright red color
+        darkerColor: '#8b0000',  // Dark red color
         isBoss: true,
-        waveAppearance: 20,      // Boss se objeví ve finální vlně 20
-        spawnDelay: 6000         // Extrémně dlouhá prodleva (v ms)
+        waveAppearance: 20,      // Boss appears in final wave 20
+        spawnDelay: 6000         // Extremely long delay (in ms)
     }
 };
 
-// Konfigurace vln - určuje, jací nepřátelé se objeví v jednotlivých vlnách
+// Wave configuration - determines which enemies appear in each wave
 export const waveConfigurations = [
-    // Vlna 1 - pouze standardní nepřátelé
+    // Wave 1 - only standard enemies
     {
         waveNumber: 1,
         enemies: [
             { type: 'standard', count: 10, spawnDelay: 900 }
         ]
     },
-    // Vlna 2 - standardní + pár rychlých
+    // Wave 2 - standard + a few fast ones
     {
         waveNumber: 2,
         enemies: [
@@ -151,7 +151,7 @@ export const waveConfigurations = [
             { type: 'fast', count: 3, spawnDelay: 800 }
         ]
     },
-    // Vlna 3 - více rychlých + první tank
+    // Wave 3 - more fast ones + first tank
     {
         waveNumber: 3,
         enemies: [
@@ -160,7 +160,7 @@ export const waveConfigurations = [
             { type: 'tank', count: 1, spawnDelay: 1500 }
         ]
     },
-    // Vlna 4 - mix standardních, rychlých a tanků
+    // Wave 4 - mix of standard, fast and tanks
     {
         waveNumber: 4,
         enemies: [
@@ -169,7 +169,7 @@ export const waveConfigurations = [
             { type: 'tank', count: 2, spawnDelay: 1400 }
         ]
     },
-    // Vlna 5 - těžší mix + první boss
+    // Wave 5 - harder mix + first boss
     {
         waveNumber: 5,
         enemies: [
@@ -179,7 +179,7 @@ export const waveConfigurations = [
         ],
         boss: { type: 'waveBoss5', spawnDelay: 3000 }
     },
-    // Vlna 6 - přidáme swift nepřátele
+    // Wave 6 - adding swift enemies
     {
         waveNumber: 6,
         enemies: [
@@ -189,7 +189,7 @@ export const waveConfigurations = [
             { type: 'tank', count: 2, spawnDelay: 1200 }
         ]
     },
-    // Vlna 7 - mix všech typů
+    // Wave 7 - mix of all types
     {
         waveNumber: 7,
         enemies: [
@@ -199,7 +199,7 @@ export const waveConfigurations = [
             { type: 'tank', count: 3, spawnDelay: 1100 }
         ]
     },
-    // Vlna 8 - přidáme armored nepřátele
+    // Wave 8 - adding armored enemies
     {
         waveNumber: 8,
         enemies: [
@@ -210,7 +210,7 @@ export const waveConfigurations = [
             { type: 'armored', count: 2, spawnDelay: 1500 }
         ]
     },
-    // Vlna 9 - těžký mix všech typů
+    // Wave 9 - difficult mix of all types
     {
         waveNumber: 9,
         enemies: [
@@ -221,7 +221,7 @@ export const waveConfigurations = [
             { type: 'armored', count: 3, spawnDelay: 1300 }
         ]
     },
-    // Vlna 10 - střední mix + boss vlny 10
+    // Wave 10 - medium mix + wave 10 boss
     {
         waveNumber: 10,
         enemies: [
@@ -233,7 +233,7 @@ export const waveConfigurations = [
         ],
         boss: { type: 'waveBoss10', spawnDelay: 4000 }
     },
-    // Vlna 11 - těžký mix po bossovi
+    // Wave 11 - hard mix after boss
     {
         waveNumber: 11,
         enemies: [
@@ -244,7 +244,7 @@ export const waveConfigurations = [
             { type: 'armored', count: 4, spawnDelay: 1100 }
         ]
     },
-    // Vlna 12 - těžký mix s důrazem na rychlé typy
+    // Wave 12 - hard mix with emphasis on fast types
     {
         waveNumber: 12,
         enemies: [
@@ -255,7 +255,7 @@ export const waveConfigurations = [
             { type: 'armored', count: 3, spawnDelay: 1000 }
         ]
     },
-    // Vlna 13 - těžký mix s důrazem na odolné typy
+    // Wave 13 - hard mix with emphasis on resilient types
     {
         waveNumber: 13,
         enemies: [
@@ -266,7 +266,7 @@ export const waveConfigurations = [
             { type: 'armored', count: 7, spawnDelay: 950 }
         ]
     },
-    // Vlna 14 - předposlední vlna, těžký mix všeho
+    // Wave 14 - penultimate wave, hard mix of everything
     {
         waveNumber: 14,
         enemies: [
@@ -277,7 +277,7 @@ export const waveConfigurations = [
             { type: 'armored', count: 6, spawnDelay: 900 }
         ]
     },
-    // Vlna 15 - finální vlna s nejtěžším mixem a finálním bossem
+    // Wave 15 - final wave with hardest mix and final boss
     {
         waveNumber: 15,
         enemies: [
@@ -289,7 +289,7 @@ export const waveConfigurations = [
         ],
         boss: { type: 'finalBoss', spawnDelay: 5000 }
     },
-    // Vlna 16 - první vlna nové výzvy, představení hybrid nepřátel
+    // Wave 16 - first wave of new challenge, introducing hybrid enemies
     {
         waveNumber: 16,
         enemies: [
@@ -301,7 +301,7 @@ export const waveConfigurations = [
             { type: 'hybrid', count: 4, spawnDelay: 600 }
         ]
     },
-    // Vlna 17 - důraz na rychlé nepřátele
+    // Wave 17 - emphasis on fast enemies
     {
         waveNumber: 17,
         enemies: [
@@ -313,7 +313,7 @@ export const waveConfigurations = [
             { type: 'hybrid', count: 8, spawnDelay: 550 }
         ]
     },
-    // Vlna 18 - vyvážený mix se zvýšeným počtem všech jednotek
+    // Wave 18 - balanced mix with increased number of all units
     {
         waveNumber: 18,
         enemies: [
@@ -325,7 +325,7 @@ export const waveConfigurations = [
             { type: 'hybrid', count: 10, spawnDelay: 500 }
         ]
     },
-    // Vlna 19 - předposlední vlna s důrazem na odolné nepřátele
+    // Wave 19 - penultimate wave with emphasis on resilient enemies
     {
         waveNumber: 19,
         enemies: [
@@ -337,7 +337,7 @@ export const waveConfigurations = [
             { type: 'hybrid', count: 15, spawnDelay: 450 }
         ]
     },
-    // Vlna 20 - finální vlna s ultimátním megabossem
+    // Wave 20 - final wave with ultimate megaboss
     {
         waveNumber: 20,
         enemies: [
