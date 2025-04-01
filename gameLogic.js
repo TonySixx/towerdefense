@@ -609,12 +609,45 @@ export function placeTower(gridX, gridY, towerType) {
 
 // Update UI elements
 export function updateUI() {
-    const { waveEl, moneyEl, healthEl, selectedTowerTypeEl, towerButtons, startWaveButton } = getUIElements();
+    const { waveEl, moneyEl, healthEl, selectedTowerTypeEl, towerButtons, startWaveButton, waveProgressBar, waveProgressText } = getUIElements();
     
     // Update text displays
     waveEl.textContent = gameState.wave;
     moneyEl.textContent = gameState.money;
     healthEl.textContent = Math.max(0, gameState.health);
+    
+    // Aktualizace progress baru pro vlnu
+    if (gameState.state === 'wave_inprogress') {
+        // Vypočet postupu vlny na základě počtu zbývajících nepřátel ke spawnování a celkového počtu nepřátel
+        const totalEnemies = gameState.enemiesToSpawn;
+        const enemiesLeft = totalEnemies - gameState.spawnCounter + gameState.enemies.length;
+        const progress = totalEnemies > 0 ? Math.max(0, Math.min(100, 100 - (enemiesLeft / totalEnemies * 100))) : 0;
+        
+        waveProgressBar.style.width = `${progress}%`;
+        waveProgressText.textContent = `Wave ${gameState.wave} Progress: ${Math.round(progress)}%`;
+
+        // Přidání barevného přechodu podle postupu
+        if (progress < 30) {
+            waveProgressBar.style.background = 'linear-gradient(to right, #f44336, #ff9800)';
+        } else if (progress < 70) {
+            waveProgressBar.style.background = 'linear-gradient(to right, #ff9800, #ffc107)';
+        } else {
+            waveProgressBar.style.background = 'linear-gradient(to right, #4CAF50, #8BC34A)';
+        }
+    } else if (gameState.state === 'waiting') {
+        // Když je vlna dokončena nebo hra ještě nezačala
+        waveProgressBar.style.width = '100%';
+        waveProgressBar.style.background = 'linear-gradient(to right, #4CAF50, #8BC34A)';
+        waveProgressText.textContent = gameState.wave === 0 ? 'Start First Wave' : `Wave ${gameState.wave} Complete!`;
+    } else if (gameState.state === 'game_over') {
+        waveProgressBar.style.width = '100%';
+        waveProgressBar.style.background = 'linear-gradient(to right, #f44336, #d32f2f)';
+        waveProgressText.textContent = 'Game Over';
+    } else if (gameState.state === 'victory') {
+        waveProgressBar.style.width = '100%';
+        waveProgressBar.style.background = 'linear-gradient(to right, #4CAF50, #2e7d32)';
+        waveProgressText.textContent = 'Victory!';
+    }
     
     // Update selected tower info
     if (gameState.selectedTowerType) {

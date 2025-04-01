@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Just Another TD</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div id="main-menu">
@@ -16,7 +17,7 @@
                 <div class="map-buttons">
                     <button class="map-button" data-map="easy">
                         <div class="map-difficulty">Easy</div>
-                        <div class="map-description">Simple path, more money, weaker enemies</div>
+                        <div class="map-description">More money, weaker enemies</div>
                     </button>
                     <button class="map-button" data-map="medium">
                         <div class="map-difficulty">Medium</div>
@@ -24,7 +25,7 @@
                     </button>
                     <button class="map-button" data-map="hard">
                         <div class="map-difficulty">Hard</div>
-                        <div class="map-description">Complex path, less money, stronger enemies</div>
+                        <div class="map-description">Less money, stronger enemies</div>
                     </button>
                 </div>
             </div>
@@ -74,18 +75,38 @@
         
         <div id="ui">
             <div id="stats">
-                <span>Wave: <span id="wave">0</span></span>
-                <span>Money: <span id="money">100</span></span>
-                <span>Lives: <span id="health">20</span></span>
+                <span class="stat-item"><i class="fas fa-flag"></i> Wave: <span id="wave">0</span></span>
+                <span class="stat-item"><i class="fas fa-coins"></i> Money: <span id="money">100</span></span>
+                <span class="stat-item"><i class="fas fa-heart"></i> Lives: <span id="health">20</span></span>
+            </div>
+            <div id="wave-progress-container">
+                <div id="wave-progress-bar"></div>
+                <div id="wave-progress-text">Wave progress</div>
             </div>
             <div id="controls">
                 <div id="tower-selection">
-                    <button class="tower-button" data-type="gun" data-cost="50">Machine Gun (50)</button>
-                    <button class="tower-button" data-type="laser" data-cost="75">Laser (75)</button>
-                    <button class="tower-button" data-type="sniper" data-cost="100">Sniper (100)</button>
-                    <button class="tower-button" data-type="railgun" data-cost="110">Railgun (110)</button>
+                    <button class="tower-button" data-type="gun" data-cost="50">
+                        <div class="tower-icon gun-icon"></div>
+                        <div class="tower-name">Machine Gun</div>
+                        <div class="tower-cost">50</div>
+                    </button>
+                    <button class="tower-button" data-type="laser" data-cost="75">
+                        <div class="tower-icon laser-icon"></div>
+                        <div class="tower-name">Laser</div>
+                        <div class="tower-cost">75</div>
+                    </button>
+                    <button class="tower-button" data-type="sniper" data-cost="100">
+                        <div class="tower-icon sniper-icon"></div>
+                        <div class="tower-name">Sniper</div>
+                        <div class="tower-cost">100</div>
+                    </button>
+                    <button class="tower-button" data-type="railgun" data-cost="110">
+                        <div class="tower-icon railgun-icon"></div>
+                        <div class="tower-name">Railgun</div>
+                        <div class="tower-cost">110</div>
+                    </button>
                 </div>
-                <button id="startWaveButton">Start Wave</button>
+                <button id="startWaveButton"><i class="fas fa-play"></i> Start Wave</button>
             </div>
             <div id="selected-tower-info">Selected tower: <span id="selected-tower-type">None</span></div>
         </div>

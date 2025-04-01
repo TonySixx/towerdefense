@@ -201,7 +201,11 @@ function checkTowerSelection() {
 }
 
 function handleTowerButtonClick(e) {
-    const type = e.target.dataset.type;
+    // Získáme nejbližší rodičovské tlačítko, pro případ že uživatel klikl na ikonu, jméno nebo cenu
+    const button = e.target.closest('.tower-button');
+    if (!button) return; // Pokud nebyl nalezen žádný rodičovský prvek s třídou tower-button
+    
+    const type = button.dataset.type;
     
     // Zrušíme případný výběr věže
     cancelSelection();

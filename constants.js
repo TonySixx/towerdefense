@@ -19,6 +19,8 @@ export const getUIElements = () => ({
     selectedTowerTypeEl: document.getElementById('selected-tower-type'),
     retryButtons: document.querySelectorAll('#retry-button'),
     mapButtons: document.querySelectorAll('.map-button'),
+    waveProgressBar: document.getElementById('wave-progress-bar'),
+    waveProgressText: document.getElementById('wave-progress-text'),
     
     // Nové UI prvky pro vylepšení a prodej věží
     towerActionsPanel: document.getElementById('tower-actions'),
