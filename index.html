@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Tower Defense</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="ui">
+            <div id="stats">
+                <span>Vlna: <span id="wave">0</span></span>
+                <span>Peníze: <span id="money">100</span></span>
+                <span>Životy: <span id="health">20</span></span>
+            </div>
+            <div id="controls">
+                <div id="tower-selection">
+                    <button class="tower-button" data-type="gun" data-cost="50">Věž I (50)</button>
+                    <button class="tower-button" data-type="laser" data-cost="75">Věž II (75)</button>
+                    <button class="tower-button" data-type="sniper" data-cost="100">Věž III (100)</button>
+                </div>
+                <button id="startWaveButton">Start Vlna</button>
+            </div>
+             <div id="selected-tower-info">Vybraná věž: <span id="selected-tower-type">Žádná</span></div>
+        </div>
+        <div id="game-over" style="display: none;">
+            <h2>Konec Hry!</h2>
+            <p>Dosáhl jsi vlny: <span id="final-wave">0</span></p>
+            <button onclick="window.location.reload()">Hrát znovu</button>
+        </div>
+         <div id="victory" style="display: none;">
+            <h2>Vítězství!</h2>
+            <p>Dokončil jsi všechny vlny!</p>
+            <button onclick="window.location.reload()">Hrát znovu</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

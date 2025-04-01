@@ -1,0 +1,169 @@
+/* === Přidáno/Upraveno v style.css === */
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    /* Jemný gradient na pozadí */
+    background: linear-gradient(to bottom, #4a4e69, #22223b);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #f2e9e4; /* Světlejší text */
+}
+
+#game-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Jemný stín kontejneru */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    border-radius: 8px; /* Zaoblení rohů kontejneru */
+    overflow: hidden; /* Zajistí, že rohy canvasu budou také zaoblené */
+}
+
+canvas {
+    /* Odebrán border, spoléháme na kontejner */
+    background-color: #2a2d34; /* Trochu světlejší pozadí hry */
+    display: block;
+}
+
+#ui {
+    background-color: #4a4e69; /* Barva sladěná s pozadím */
+    padding: 12px 15px; /* Trochu více paddingu */
+    /* Odebrán border, spoléháme na kontejner */
+    width: 100%; /* UI zabere šířku kontejneru */
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #6b6b8a; /* Jemná linka oddělující od canvasu */
+}
+
+#stats span {
+    margin-right: 20px;
+    font-size: 1.1em;
+    font-weight: 500; /* Trochu tlustší písmo */
+}
+
+#controls {
+    display: flex;
+    align-items: center;
+}
+
+/* Společné styly pro tlačítka */
+.tower-button, #startWaveButton {
+    padding: 9px 14px;
+    border: none; /* Bez ohraničení */
+    color: #f2e9e4;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    border-radius: 5px; /* Zaoblené rohy */
+    font-size: 0.95em;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Jemný stín */
+    margin-left: 6px; /* Nahrazuje margin-right u tower-button */
+}
+
+.tower-button:first-child {
+    margin-left: 0; /* První nemá margin vlevo */
+}
+
+.tower-button {
+    background-color: #6b6b8a; /* Tmavší šedo-modrá */
+}
+
+.tower-button:hover {
+    background-color: #7d7d9e;
+}
+
+.tower-button:active {
+    transform: translateY(1px); /* Efekt stisknutí */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+
+.tower-button.selected {
+    background-color: #9a8c98; /* Barva pro vybranou věž - tlumenější fialová */
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); /* Vnitřní stín pro "stisknutý" vzhled */
+}
+
+
+#startWaveButton {
+    background-color: #52b788; /* Zelená */
+}
+
+#startWaveButton:hover {
+    background-color: #61c79a;
+}
+
+#startWaveButton:disabled {
+    background-color: #585f7b; /* Tmavší šedo-modrá pro neaktivní */
+    color: #a0a5c0;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+#startWaveButton:active:not(:disabled) {
+     transform: translateY(1px); /* Efekt stisknutí */
+     box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+
+#selected-tower-info {
+    position: absolute;
+    bottom: -25px; /* Posunuto níže, mimo UI panel */
+    left: 10px;
+    font-size: 0.9em;
+    color: #c9c9df;
+}
+
+
+/* Styly pro Game Over / Victory obrazovku - mírné úpravy */
+#game-over, #victory {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(42, 45, 52, 0.9); /* Tmavší pozadí s průhledností */
+    padding: 40px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid #6b6b8a; /* Jemnější ohraničení */
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+    z-index: 10;
+}
+
+#game-over h2 {
+    margin-top: 0;
+    color: #e56b6f; /* Trochu méně ostrá červená */
+    font-size: 2.5em; /* Větší nadpis */
+}
+#victory h2 {
+     margin-top: 0;
+     color: #61c79a; /* Světlejší zelená */
+     font-size: 2.5em;
+}
+
+#game-over p, #victory p {
+    font-size: 1.2em;
+    margin-bottom: 25px;
+}
+
+#game-over button, #victory button {
+    padding: 12px 25px;
+    font-size: 1.1em;
+    cursor: pointer;
+    background-color: #6b6b8a;
+    border: none;
+    color: #f2e9e4;
+    border-radius: 5px;
+    margin-top: 20px;
+    transition: background-color 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+#game-over button:hover, #victory button:hover {
+     background-color: #7d7d9e;
+}
+/* === Konec přidaných/upravených stylů === */
