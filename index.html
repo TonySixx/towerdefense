@@ -3,11 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Tower Defense</title>
+    <title>Just Another TD</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="game-container">
+    <div id="main-menu">
+        <canvas id="menuCanvas"></canvas>
+        <div class="menu-content">
+            <h1 class="game-title">Just Another TD</h1>
+            <div class="map-selection">
+                <h2>Vyberte obtížnost mapy:</h2>
+                <div class="map-buttons">
+                    <button class="map-button" data-map="easy">
+                        <div class="map-difficulty">Lehká</div>
+                        <div class="map-description">Jednoduchá cesta, více peněz, slabší nepřátelé</div>
+                    </button>
+                    <button class="map-button" data-map="medium">
+                        <div class="map-difficulty">Střední</div>
+                        <div class="map-description">Běžná obtížnost, vyvážená hra</div>
+                    </button>
+                    <button class="map-button" data-map="hard">
+                        <div class="map-difficulty">Těžká</div>
+                        <div class="map-description">Složitá cesta, méně peněz, silnější nepřátelé</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-container" style="display: none;">
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         <div id="ui">
             <div id="stats">
@@ -28,12 +52,12 @@
         <div id="game-over" style="display: none;">
             <h2>Konec Hry!</h2>
             <p>Dosáhl jsi vlny: <span id="final-wave">0</span></p>
-            <button onclick="window.location.reload()">Hrát znovu</button>
+            <button id="retry-button">Hrát znovu</button>
         </div>
          <div id="victory" style="display: none;">
             <h2>Vítězství!</h2>
             <p>Dokončil jsi všechny vlny!</p>
-            <button onclick="window.location.reload()">Hrát znovu</button>
+            <button id="retry-button">Hrát znovu</button>
         </div>
     </div>
 

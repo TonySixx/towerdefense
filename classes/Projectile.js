@@ -90,7 +90,7 @@ class Projectile {
             ctx.beginPath();
             // Trail points shrink
             ctx.arc(point.x, point.y, this.size * point.alpha * 0.7, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.fill(); 
         }
         ctx.globalAlpha = 1.0; // Reset alpha for main projectile
 

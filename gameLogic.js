@@ -1,5 +1,5 @@
 // Game Logic
-import { MAX_WAVES, path, getUIElements, towerTypes, getCanvas } from './constants.js';
+import { MAX_WAVES, path, getUIElements, towerTypes, getCanvas, maps } from './constants.js';
 import { createGrid, markPathOnGrid, isValidPlacement } from './utils.js';
 import Enemy from './classes/Enemy.js';
 import Tower from './classes/Tower.js';
@@ -26,13 +26,42 @@ export const gameState = {
     spawnCounter: 0,
     spawnInterval: 900,
     timeSinceLastSpawn: 0,
-    lastTime: 0
+    lastTime: 0,
+    // Nové vlastnosti pro různé mapy
+    currentMapType: 'medium',
+    currentPath: null,
+    enemyHealthModifier: 1.0,
+    waveModifier: 1.0
 };
 
 // Initialize the game grid
-export function initGame() {
+export function initGame(mapType = 'medium') {
+    // Nastavení vlastností podle mapy
+    const selectedMap = maps[mapType];
+    gameState.currentMapType = mapType;
+    gameState.currentPath = selectedMap.path;
+    gameState.money = selectedMap.startMoney;
+    gameState.health = selectedMap.startHealth;
+    gameState.enemyHealthModifier = selectedMap.enemyHealthModifier;
+    gameState.waveModifier = selectedMap.waveModifier;
+    
+    // Reset herního stavu
+    gameState.wave = 0;
+    gameState.enemies = [];
+    gameState.towers = [];
+    gameState.projectiles = [];
+    gameState.particles = [];
+    gameState.floatingTexts = [];
+    gameState.selectedTowerType = null;
+    gameState.placingTower = false;
+    gameState.state = 'waiting';
+    gameState.enemiesToSpawn = 0;
+    gameState.spawnCounter = 0;
+    
+    // Vytvoření a inicializace gridu
     gameState.grid = createGrid();
-    gameState.grid = markPathOnGrid(gameState.grid, path);
+    gameState.grid = markPathOnGrid(gameState.grid, gameState.currentPath);
+    
     updateUI();
 }
 
@@ -51,7 +80,7 @@ export function createFloatingText(x, y, text, color = '#ffd700', size = 16, lif
 // Spawn new enemy
 export function spawnEnemy() {
     if (gameState.enemiesToSpawn > 0 && gameState.spawnCounter < gameState.enemiesToSpawn) {
-        gameState.enemies.push(new Enemy(gameState.wave));
+        gameState.enemies.push(new Enemy(gameState.wave, gameState.enemyHealthModifier));
         gameState.spawnCounter++;
     }
 }
@@ -67,7 +96,8 @@ export function startNextWave() {
     }
     
     gameState.state = 'wave_inprogress';
-    gameState.enemiesToSpawn = 8 + gameState.wave * 4;
+    // Použití modifikátoru vlny pro určení počtu nepřátel
+    gameState.enemiesToSpawn = Math.floor((8 + gameState.wave * 4) * gameState.waveModifier);
     gameState.spawnCounter = 0;
     gameState.timeSinceLastSpawn = gameState.spawnInterval;
     

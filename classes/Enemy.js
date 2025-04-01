@@ -1,18 +1,17 @@
 // Enemy Class
 import { getCanvasCoords, lerpColor } from '../utils.js';
-import { path } from '../constants.js';
 import { TILE_SIZE } from '../constants.js';
 import { gameState, updateUI } from '../gameLogic.js';
 
 class Enemy {
-    constructor(waveNum) {
+    constructor(waveNum, healthModifier = 1.0) {
         this.pathIndex = 0;
-        const startPos = getCanvasCoords(path[0].x, path[0].y);
+        const startPos = getCanvasCoords(gameState.currentPath[0].x, gameState.currentPath[0].y);
         this.x = startPos.x;
         this.y = startPos.y;
         this.baseHealth = 60; // Base health value
         this.healthGrowth = 1.22; // Health growth per wave
-        this.maxHealth = Math.floor(this.baseHealth * Math.pow(this.healthGrowth, waveNum - 1));
+        this.maxHealth = Math.floor(this.baseHealth * Math.pow(this.healthGrowth, waveNum - 1) * healthModifier);
         this.health = this.maxHealth;
         this.speed = 60 + (waveNum * 2.5); // Speed in pixels per second
         this.value = 5 + waveNum; // Money rewarded when killed
@@ -21,6 +20,7 @@ class Enemy {
         this.darkerColor = '#b54d4f'; // Darker color for gradient/low health
         this.isDead = false;
         this.reachedEnd = false;
+        this.processed = false;
         // Pulsation effect
         this.pulseTimer = Math.random() * 1000;
         this.pulseSpeed = 800 + Math.random() * 400; // ms per cycle
@@ -33,7 +33,7 @@ class Enemy {
         const targetPathPointIndex = this.pathIndex + 1;
         
         // Check if reached end of path
-        if (targetPathPointIndex >= path.length) {
+        if (targetPathPointIndex >= gameState.currentPath.length) {
             this.reachedEnd = true;
             this.isDead = true;
             // Damage and game-over check handled by gameLogic.js
@@ -41,7 +41,7 @@ class Enemy {
         }
 
         // Get target position
-        const targetGridPos = path[targetPathPointIndex];
+        const targetGridPos = gameState.currentPath[targetPathPointIndex];
         const targetCanvasPos = getCanvasCoords(targetGridPos.x, targetGridPos.y);
         
         // Calculate direction and distance to next point

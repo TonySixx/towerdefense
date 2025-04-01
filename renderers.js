@@ -1,5 +1,5 @@
 // Rendering Functions
-import { TILE_SIZE, ROWS, COLS, path, towerTypes } from './constants.js';
+import { TILE_SIZE, ROWS, COLS, towerTypes } from './constants.js';
 import { getCanvasCoords, isValidPlacement } from './utils.js';
 
 // Global variables for screen flash effect
@@ -50,8 +50,8 @@ export function drawGrid(ctx, canvas) {
 }
 
 // Draw the path that enemies follow
-export function drawPath(ctx, canvas) {
-    if (path.length < 2) return;
+export function drawPath(ctx, canvas, currentPath) {
+    if (!currentPath || currentPath.length < 2) return;
 
     // Path Gradient
     const pathGrad = ctx.createLinearGradient(0, 0, canvas.width, 0); // Horizontal gradient
@@ -66,11 +66,11 @@ export function drawPath(ctx, canvas) {
     ctx.globalAlpha = 0.8; // Make path slightly transparent
 
     ctx.beginPath();
-    const startPos = getCanvasCoords(path[0].x, path[0].y);
+    const startPos = getCanvasCoords(currentPath[0].x, currentPath[0].y);
     ctx.moveTo(startPos.x, startPos.y);
     
-    for (let i = 1; i < path.length; i++) {
-        const pos = getCanvasCoords(path[i].x, path[i].y);
+    for (let i = 1; i < currentPath.length; i++) {
+        const pos = getCanvasCoords(currentPath[i].x, currentPath[i].y);
         ctx.lineTo(pos.x, pos.y);
     }
     
@@ -131,8 +131,8 @@ export function draw(ctx, canvas, gameState, grid, towers, projectiles, enemies,
     // Draw grid
     drawGrid(ctx, canvas);
 
-    // Draw path
-    drawPath(ctx, canvas);
+    // Draw path - použít aktuální cestu z gameState
+    drawPath(ctx, canvas, gameState.currentPath);
 
     // Draw game objects
     towers.forEach(tower => tower.draw(ctx, placingTower, selectedTowerType, mouse.gridX, mouse.gridY));
