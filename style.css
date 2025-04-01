@@ -998,3 +998,36 @@ canvas {
 }
 
 /* Note: The compact UI reduces the game container height from 818px to approximately 700px for better usability on smaller screens */
+
+/* Tower help text - appears when no tower is selected */
+#tower-help-text {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 20px;
+    text-align: center;
+    color: #f2e9e4;
+    font-size: 18px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(42, 45, 52, 0.95);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    line-height: 1.5;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+#tower-actions:not([style*="display: none"]) + #tower-help-text {
+    display: none;
+}
+
+/* Responsive styles for smaller screens */
+@media screen and (max-height: 800px) {
+    #tower-help-text {
+        font-size: 16px;
+        padding: 15px;
+    }
+}
