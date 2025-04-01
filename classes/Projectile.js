@@ -5,7 +5,7 @@ import { createParticles, createFloatingText, gameState } from '../gameLogic.js'
 import { triggerScreenFlash } from '../renderers.js';
 
 class Projectile {
-    constructor(startX, startY, targetEnemy, damage, speed, color, size) {
+    constructor(startX, startY, targetEnemy, damage, speed, color, size, specialEffects = null) {
         this.x = startX;
         this.y = startY;
         this.target = targetEnemy;
@@ -17,6 +17,23 @@ class Projectile {
         // For trail effect
         this.trail = [];
         this.trailLength = 5;
+        
+        // Speciální efekty projektilu
+        this.specialEffects = specialEffects;
+        
+        // Vizuální modifikace pro speciální efekty
+        if (specialEffects) {
+            // Burn efekt - delší trail
+            if (specialEffects.burnDamage) {
+                this.trailLength = 8;
+                this.burnColor = '#ff5252'; // Červená barva pro burn efekt
+            }
+            
+            // Armor piercing - větší projektil
+            if (specialEffects.armorPiercing) {
+                this.size = size * 1.2; // O 20% větší projektil
+            }
+        }
     }
 
     move(deltaTime) {
@@ -55,8 +72,25 @@ class Projectile {
 
     hitTarget() {
         if (!this.toRemove && this.target && !this.target.isDead) {
+            // Výpočet poškození se speciálními efekty
+            let finalDamage = this.damage;
+            
+            // Aplikace efektů při zásahu
+            if (this.specialEffects) {
+                // Armor piercing - ignoruje část armor nepřítele
+                if (this.specialEffects.armorPiercing) {
+                    // Případná implementace armor systému
+                    // Pro budoucí vylepšení
+                }
+                
+                // Burn efekt - vytvoří vizuální efekt hoření
+                if (this.specialEffects.burnDamage && this.specialEffects.burnDuration) {
+                    this.applyBurnEffect();
+                }
+            }
+            
             // Pass onDeath callback to display floating money text
-            this.target.takeDamage(this.damage, (x, y, value) => {
+            this.target.takeDamage(finalDamage, (x, y, value) => {
                 // Create death explosion particles
                 createParticles(x, y, this.target.color, 15, 4, 500, this.target.size * 0.5);
                 
@@ -80,8 +114,78 @@ class Projectile {
             this.toRemove = true;
         }
     }
+    
+    // Nová metoda pro aplikaci burn efektu
+    applyBurnEffect() {
+        if (!this.target || this.target.isDead) return;
+        
+        // Vytvoření efektu hoření pomocí částic
+        createParticles(
+            this.target.x, 
+            this.target.y, 
+            this.burnColor || '#ff5252', 
+            8, // Počet částic
+            3, // Rychlost
+            this.specialEffects.burnDuration, // Trvání
+            this.target.size * 0.4 // Velikost
+        );
+        
+        // Vytvoření plovoucího textu pro burn damage
+        createFloatingText(
+            this.target.x, 
+            this.target.y - this.target.size - 10, 
+            `${this.specialEffects.burnDamage} 🔥`, 
+            '#ff5252', 
+            16, 
+            1500
+        );
+        
+        // Aplikace burn damage po čase
+        let burnTicks = 4; // Počet ticků burn efektu
+        let tickDamage = this.specialEffects.burnDamage / burnTicks;
+        let tickInterval = this.specialEffects.burnDuration / burnTicks;
+        
+        // Funkce pro aplikaci burn damage v čase
+        const applyBurnDamage = () => {
+            if (this.target && !this.target.isDead && !this.target.reachedEnd) {
+                this.target.takeDamage(tickDamage);
+                
+                // Vytvoření malého efektu hoření
+                createParticles(
+                    this.target.x + (Math.random() - 0.5) * this.target.size,
+                    this.target.y + (Math.random() - 0.5) * this.target.size,
+                    '#ff5252',
+                    3,
+                    2,
+                    500,
+                    2
+                );
+                
+                burnTicks--;
+                if (burnTicks > 0) {
+                    setTimeout(applyBurnDamage, tickInterval);
+                }
+            }
+        };
+        
+        // Spuštění první iterace burn damage po čase
+        setTimeout(applyBurnDamage, tickInterval);
+    }
 
     draw(ctx) {
+        // Speciální vykreslení pro burn efekt
+        if (this.specialEffects && this.specialEffects.burnDamage) {
+            this.drawBurnEffect(ctx);
+        } else if (this.specialEffects && this.specialEffects.armorPiercing) {
+            this.drawArmorPiercingEffect(ctx);
+        } else {
+            // Standardní vykreslení
+            this.drawStandard(ctx);
+        }
+    }
+    
+    // Standardní vykreslení projektilu
+    drawStandard(ctx) {
         // Draw trail first (older points are more transparent)
         for (let i = 0; i < this.trail.length; i++) {
             const point = this.trail[i];
@@ -104,6 +208,87 @@ class Projectile {
         ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // Vykreslení burn efektu
+    drawBurnEffect(ctx) {
+        // Draw trail with fire colors
+        for (let i = 0; i < this.trail.length; i++) {
+            const point = this.trail[i];
+            const alpha = point.alpha * 0.7;
+            
+            // Fire gradient
+            const gradient = ctx.createRadialGradient(
+                point.x, point.y, 0,
+                point.x, point.y, this.size * point.alpha * 1.2
+            );
+            gradient.addColorStop(0, `rgba(255, 255, 100, ${alpha})`); // Yellow core
+            gradient.addColorStop(0.5, `rgba(255, 80, 80, ${alpha})`); // Red middle
+            gradient.addColorStop(1, `rgba(180, 0, 0, 0)`); // Transparent outer
+            
+            ctx.globalAlpha = 1.0;
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, this.size * point.alpha * 1.2, 0, Math.PI * 2);
+            ctx.fill(); 
+        }
+        
+        // Draw main projectile
+        const gradient = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.size * 1.5
+        );
+        gradient.addColorStop(0, 'rgba(255, 255, 200, 1)'); // Bright yellow center
+        gradient.addColorStop(0.6, 'rgba(255, 80, 0, 0.8)'); // Orange middle
+        gradient.addColorStop(1, 'rgba(180, 0, 0, 0)'); // Transparent outer
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Bright core
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // Vykreslení armor piercing efektu
+    drawArmorPiercingEffect(ctx) {
+        // Draw trail with blue pierce colors
+        for (let i = 0; i < this.trail.length; i++) {
+            const point = this.trail[i];
+            ctx.globalAlpha = point.alpha * 0.6;
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            // Trail points are elongated for penetration effect
+            ctx.ellipse(
+                point.x, 
+                point.y, 
+                this.size * point.alpha, 
+                this.size * point.alpha * 2, 
+                Math.atan2(this.y - point.y, this.x - point.x), 
+                0, 
+                Math.PI * 2
+            );
+            ctx.fill(); 
+        }
+        ctx.globalAlpha = 1.0;
+
+        // Draw main projectile - elongated
+        const angle = Math.atan2(this.target ? this.target.y - this.y : 0, this.target ? this.target.x - this.x : 1);
+        
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.ellipse(this.x, this.y, this.size, this.size * 2, angle, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Add a metallic sheen
+        ctx.fillStyle = 'rgba(220, 220, 255, 0.8)';
+        ctx.beginPath();
+        ctx.ellipse(this.x, this.y, this.size * 0.4, this.size * 0.8, angle, 0, Math.PI * 2);
         ctx.fill();
     }
 }

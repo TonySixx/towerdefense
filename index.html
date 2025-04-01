@@ -32,7 +32,37 @@
     </div>
 
     <div id="game-container" style="display: none;">
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="game-layout">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            
+            <!-- Nový sidebar pro zobrazení detailů o věži -->
+            <div id="tower-sidebar">
+                <div id="tower-actions" style="display: none;">
+                    <div id="selected-tower-details">
+                        <h3>Detaily věže</h3>
+                        <div class="tower-stat">Typ: <span id="detail-type">-</span></div>
+                        <div class="tower-stat">Úroveň: <span id="detail-level">-</span></div>
+                        <div class="tower-stat">Poškození: <span id="detail-damage">-</span></div>
+                        <div class="tower-stat">Rychlost: <span id="detail-fire-rate">-</span></div>
+                        <div class="tower-stat">Dosah: <span id="detail-range">-</span></div>
+                    </div>
+                    <div id="tower-upgrade-info" style="display: none;">
+                        <h3>Vylepšení na úroveň <span id="upgrade-level">-</span></h3>
+                        <div class="tower-stat">Nové poškození: <span id="upgrade-damage">-</span></div>
+                        <div class="tower-stat">Nová rychlost: <span id="upgrade-fire-rate">-</span></div>
+                        <div class="tower-stat">Nový dosah: <span id="upgrade-range">-</span></div>
+                        <div class="tower-stat special-feature">Speciální efekt: <span id="upgrade-special">-</span></div>
+                        <div class="tower-price">Cena: <span id="upgrade-price">-</span></div>
+                    </div>
+                    <div id="tower-action-buttons">
+                        <button id="upgrade-tower-button" disabled>Vylepšit</button>
+                        <button id="sell-tower-button">Prodat (<span id="sell-value">-</span>)</button>
+                        <button id="cancel-selection-button">Zrušit výběr</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div id="ui">
             <div id="stats">
                 <span>Vlna: <span id="wave">0</span></span>
@@ -47,14 +77,15 @@
                 </div>
                 <button id="startWaveButton">Start Vlna</button>
             </div>
-             <div id="selected-tower-info">Vybraná věž: <span id="selected-tower-type">Žádná</span></div>
+            <div id="selected-tower-info">Vybraná věž: <span id="selected-tower-type">Žádná</span></div>
         </div>
+        
         <div id="game-over" style="display: none;">
             <h2>Konec Hry!</h2>
             <p>Dosáhl jsi vlny: <span id="final-wave">0</span></p>
             <button id="retry-button">Hrát znovu</button>
         </div>
-         <div id="victory" style="display: none;">
+        <div id="victory" style="display: none;">
             <h2>Vítězství!</h2>
             <p>Dokončil jsi všechny vlny!</p>
             <button id="retry-button">Hrát znovu</button>

@@ -1,6 +1,10 @@
 // Main Game Entry Point
 import { getCanvas, getContext, getUIElements, towerTypes, getMenuCanvas, getMenuContext } from './constants.js';
-import { gameState, initGame, update, startNextWave, placeTower, createParticles, updateUI } from './gameLogic.js';
+import { 
+    gameState, initGame, update, startNextWave, placeTower, 
+    createParticles, updateUI, selectTower, upgradeTower, 
+    sellTower, cancelSelection 
+} from './gameLogic.js';
 import { draw } from './renderers.js';
 import { getGridCoords } from './utils.js';
 import Tower from './classes/Tower.js';
@@ -115,11 +119,11 @@ function gameLoop(timestamp) {
     // Update game state
     update(deltaTime);
     
-    // Draw the game
+    // Draw the game - předáváme celý gameState, který obsahuje všechny potřebné informace
     draw(
         ctx, 
         canvas, 
-        gameState, 
+        gameState,
         gameState.grid, 
         gameState.towers, 
         gameState.projectiles, 
@@ -147,6 +151,7 @@ function handleMouseMove(e) {
 }
 
 function handleCanvasClick() {
+    // Pokud je aktivní umisťování věže
     if (gameState.placingTower && gameState.selectedTowerType) {
         const gridX = gameState.mouse.gridX;
         const gridY = gameState.mouse.gridY;
@@ -166,11 +171,40 @@ function handleCanvasClick() {
                 createParticles(gameState.mouse.x, gameState.mouse.y, '#ff0000', 5, 2, 300, 3); // Red puffs
             }
         }
+    } else {
+        // Zkontrolovat, zda uživatel klikl na věž
+        checkTowerSelection();
+    }
+}
+
+// Nová funkce pro kontrolu, zda uživatel klikl na věž
+function checkTowerSelection() {
+    // Nejprve vynulujeme výběr
+    cancelSelection();
+    
+    // Zkontrolujeme, zda kliknutí bylo na některou věž
+    const mouseX = gameState.mouse.x;
+    const mouseY = gameState.mouse.y;
+    const clickRadius = 20; // Poloměr pro detekci kliknutí
+    
+    for (const tower of gameState.towers) {
+        const dx = mouseX - tower.x;
+        const dy = mouseY - tower.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance <= clickRadius) {
+            // Nalezena věž, na kterou uživatel klikl
+            selectTower(tower);
+            break;
+        }
     }
 }
 
 function handleTowerButtonClick(e) {
     const type = e.target.dataset.type;
+    
+    // Zrušíme případný výběr věže
+    cancelSelection();
     
     // Toggle tower selection
     if (gameState.selectedTowerType === type) {
@@ -184,12 +218,28 @@ function handleTowerButtonClick(e) {
     updateUI();
 }
 
+// Nové handlery pro akce s věžemi
+function handleUpgradeTowerClick() {
+    upgradeTower();
+    updateUI();
+}
+
+function handleSellTowerClick() {
+    sellTower();
+    // updateUI je voláno uvnitř sellTower
+}
+
+function handleCancelSelectionClick() {
+    cancelSelection();
+    updateUI();
+}
+
 // Initialize Event Listeners
 function initEventListeners() {
     // Mouse movement
     canvas.addEventListener('mousemove', handleMouseMove);
     
-    // Canvas click for tower placement
+    // Canvas click for tower placement and selection
     canvas.addEventListener('click', handleCanvasClick);
     
     // Start wave button
@@ -201,6 +251,12 @@ function initEventListeners() {
     towerButtons.forEach(button => {
         button.addEventListener('click', handleTowerButtonClick);
     });
+    
+    // Nové event listenery pro akce s věžemi
+    const { upgradeTowerButton, sellTowerButton, cancelSelectionButton } = getUIElements();
+    upgradeTowerButton.addEventListener('click', handleUpgradeTowerClick);
+    sellTowerButton.addEventListener('click', handleSellTowerClick);
+    cancelSelectionButton.addEventListener('click', handleCancelSelectionClick);
     
     // Map selection buttons
     const { mapButtons } = getUIElements();

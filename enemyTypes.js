@@ -60,6 +60,18 @@ export const enemyTypes = {
         color: '#cdb4db',        // Fialová barva
         darkerColor: '#a2a3bb',  // Tmavě fialová barva
         isBoss: false
+    },
+    
+    // Vyváženější nepřítel kombinující rychlost a odolnost
+    hybrid: {
+        name: "Hybrid",
+        healthModifier: 1.8,     // Téměř tak odolný jako tank
+        speedModifier: 1.4,      // Rychlejší než standard, ale ne tak rychlý jako fast typy
+        sizeModifier: 1.1,       // Mírně větší
+        valueModifier: 2.5,      // Vysoká odměna kvůli náročnosti
+        color: '#9d4edd',        // Fialová barva
+        darkerColor: '#5a189a',  // Tmavě fialová barva
+        isBoss: false
     }
 };
 
@@ -105,6 +117,20 @@ export const bossTypes = {
         isBoss: true,
         waveAppearance: 15,      // Boss se objeví ve vlně 15
         spawnDelay: 5000         // Velmi dlouhá prodleva (v ms)
+    },
+    
+    // Ultimátní megaboss pro vlnu 20
+    megaBoss: {
+        name: "Mega Boss",
+        healthModifier: 40.0,    // 40x více životů než standard
+        speedModifier: 1.1,      // Mírně rychlejší než standard
+        sizeModifier: 3.0,       // 3x větší velikost
+        valueModifier: 40.0,     // 40x větší odměna
+        color: '#ff0000',        // Jasně červená barva
+        darkerColor: '#8b0000',  // Tmavě červená barva
+        isBoss: true,
+        waveAppearance: 20,      // Boss se objeví ve finální vlně 20
+        spawnDelay: 6000         // Extrémně dlouhá prodleva (v ms)
     }
 };
 
@@ -262,5 +288,66 @@ export const waveConfigurations = [
             { type: 'armored', count: 8, spawnDelay: 800 }
         ],
         boss: { type: 'finalBoss', spawnDelay: 5000 }
+    },
+    // Vlna 16 - první vlna nové výzvy, představení hybrid nepřátel
+    {
+        waveNumber: 16,
+        enemies: [
+            { type: 'standard', count: 12, spawnDelay: 380 },
+            { type: 'fast', count: 12, spawnDelay: 220 },
+            { type: 'swift', count: 10, spawnDelay: 160 },
+            { type: 'tank', count: 8, spawnDelay: 520 },
+            { type: 'armored', count: 6, spawnDelay: 750 },
+            { type: 'hybrid', count: 4, spawnDelay: 600 }
+        ]
+    },
+    // Vlna 17 - důraz na rychlé nepřátele
+    {
+        waveNumber: 17,
+        enemies: [
+            { type: 'standard', count: 8, spawnDelay: 350 },
+            { type: 'fast', count: 15, spawnDelay: 200 },
+            { type: 'swift', count: 15, spawnDelay: 140 },
+            { type: 'tank', count: 5, spawnDelay: 480 },
+            { type: 'armored', count: 5, spawnDelay: 700 },
+            { type: 'hybrid', count: 8, spawnDelay: 550 }
+        ]
+    },
+    // Vlna 18 - vyvážený mix se zvýšeným počtem všech jednotek
+    {
+        waveNumber: 18,
+        enemies: [
+            { type: 'standard', count: 14, spawnDelay: 320 },
+            { type: 'fast', count: 12, spawnDelay: 180 },
+            { type: 'swift', count: 12, spawnDelay: 120 },
+            { type: 'tank', count: 10, spawnDelay: 450 },
+            { type: 'armored', count: 8, spawnDelay: 650 },
+            { type: 'hybrid', count: 10, spawnDelay: 500 }
+        ]
+    },
+    // Vlna 19 - předposlední vlna s důrazem na odolné nepřátele
+    {
+        waveNumber: 19,
+        enemies: [
+            { type: 'standard', count: 10, spawnDelay: 300 },
+            { type: 'fast', count: 10, spawnDelay: 160 },
+            { type: 'swift', count: 10, spawnDelay: 100 },
+            { type: 'tank', count: 12, spawnDelay: 400 },
+            { type: 'armored', count: 12, spawnDelay: 600 },
+            { type: 'hybrid', count: 15, spawnDelay: 450 }
+        ]
+    },
+    // Vlna 20 - finální vlna s ultimátním megabossem
+    {
+        waveNumber: 20,
+        enemies: [
+            { type: 'standard', count: 15, spawnDelay: 250 },
+            { type: 'fast', count: 12, spawnDelay: 140 },
+            { type: 'swift', count: 12, spawnDelay: 80 },
+            { type: 'tank', count: 10, spawnDelay: 350 },
+            { type: 'armored', count: 10, spawnDelay: 550 },
+            { type: 'hybrid', count: 10, spawnDelay: 400 }
+        ],
+        boss: { type: 'megaBoss', spawnDelay: 6000 }
     }
 ]; 

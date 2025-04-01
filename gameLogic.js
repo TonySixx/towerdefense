@@ -19,6 +19,7 @@ export const gameState = {
     particles: [],
     floatingTexts: [],
     selectedTowerType: null,
+    selectedTower: null, // Vybraná věž pro upgrade/prodej
     placingTower: false,
     mouse: { x: 0, y: 0, gridX: 0, gridY: 0 },
     grid: null,
@@ -349,8 +350,212 @@ export function endGame(isVictory) {
     updateUI();
 }
 
+// Funkce pro výběr věže
+export function selectTower(tower) {
+    // Nejprve zrušíme výběr u všech věží
+    cancelSelection();
+    
+    // Nastavíme vybranou věž
+    gameState.selectedTower = tower;
+    tower.setSelected(true);
+    
+    // Deaktivujeme umisťování věží
+    gameState.placingTower = false;
+    gameState.selectedTowerType = null;
+    
+    // Aktualizujeme UI
+    updateTowerActionUI();
+}
+
+// Funkce pro vylepšení vybrané věže
+export function upgradeTower() {
+    if (!gameState.selectedTower) return false;
+    
+    const tower = gameState.selectedTower;
+    const upgradePrice = tower.getUpgradePrice();
+    
+    // Kontrola, zda má hráč dostatek peněz a věž lze vylepšit
+    if (gameState.money >= upgradePrice && tower.canUpgrade()) {
+        // Odečtení peněz
+        gameState.money -= upgradePrice;
+        
+        // Vylepšení věže
+        const success = tower.upgrade();
+        
+        if (success) {
+            // Efekt vylepšení
+            createParticles(tower.x, tower.y, '#4caf50', 15, 3, 500, 5);
+            createFloatingText(
+                tower.x, 
+                tower.y - 20, 
+                'VYLEPŠENO', 
+                '#4caf50', 
+                20, 
+                2000
+            );
+            
+            // Zvukový efekt nebo další vizuální prvky by mohly být přidány zde
+            
+            // Aktualizace UI
+            updateTowerActionUI();
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+// Funkce pro prodej vybrané věže
+export function sellTower() {
+    if (!gameState.selectedTower) return false;
+    
+    const tower = gameState.selectedTower;
+    const sellValue = tower.getSellValue();
+    
+    // Přidání peněz hráči
+    gameState.money += sellValue;
+    
+    // Nalezení indexu věže v poli věží
+    const towerIndex = gameState.towers.findIndex(t => t === tower);
+    
+    if (towerIndex !== -1) {
+        // Vytvoření efektu při prodeji
+        createParticles(tower.x, tower.y, '#f44336', 15, 3, 500, 5);
+        createFloatingText(
+            tower.x, 
+            tower.y - 20, 
+            `+${sellValue}`, 
+            '#ffea00', 
+            20, 
+            2000
+        );
+        
+        // Odstranění věže z pole
+        gameState.towers.splice(towerIndex, 1);
+        
+        // Uvolnění pole na gridu
+        gameState.grid[tower.gridY][tower.gridX].occupied = false;
+        
+        // Zrušení výběru
+        cancelSelection();
+        
+        // Aktualizace UI
+        updateUI();
+        return true;
+    }
+    
+    return false;
+}
+
+// Funkce pro zrušení výběru
+export function cancelSelection() {
+    // Zrušíme výběr u všech věží
+    for (const tower of gameState.towers) {
+        tower.setSelected(false);
+        tower.setUpgrading(false);
+        tower.setSelling(false);
+    }
+    
+    // Zrušíme vybranou věž
+    gameState.selectedTower = null;
+    
+    // Skryjeme panel akcí věže
+    const { towerActionsPanel } = getUIElements();
+    towerActionsPanel.style.display = 'none';
+}
+
+// Funkce pro aktualizaci UI akcí věže
+function updateTowerActionUI() {
+    const tower = gameState.selectedTower;
+    if (!tower) {
+        return cancelSelection();
+    }
+    
+    const { 
+        towerActionsPanel, detailType, detailLevel, detailDamage, detailFireRate, detailRange,
+        towerUpgradeInfo, upgradeLevel, upgradeDamage, upgradeFireRate, upgradeRange, upgradeSpecial, upgradePrice,
+        upgradeTowerButton, sellTowerButton, sellValue
+    } = getUIElements();
+    
+    // Zobrazíme panel akcí
+    towerActionsPanel.style.display = 'block';
+    
+    // Název věže a úroveň
+    const towerTypeName = towerTypes[tower.type].name;
+    detailType.textContent = towerTypeName;
+    detailLevel.textContent = tower.level;
+    
+    // Aktuální statistiky
+    detailDamage.textContent = tower.damage;
+    detailFireRate.textContent = `${tower.fireRate}ms`;
+    detailRange.textContent = tower.range;
+    
+    // Prodejní hodnota
+    sellValue.textContent = tower.getSellValue();
+    
+    // Informace o vylepšení
+    if (tower.canUpgrade()) {
+        const nextLevel = tower.level + 1;
+        const nextLevelData = towerTypes[tower.type].levels[nextLevel - 1];
+        
+        towerUpgradeInfo.style.display = 'block';
+        upgradeLevel.textContent = nextLevel;
+        upgradeDamage.textContent = nextLevelData.damage;
+        upgradeFireRate.textContent = `${nextLevelData.fireRate}ms`;
+        upgradeRange.textContent = nextLevelData.range;
+        
+        // Zobrazení speciálních efektů pro další úroveň
+        let specialText = '';
+        if (nextLevelData.extraFeatures) {
+            if (nextLevelData.extraFeatures.doubleBarrel) {
+                specialText += 'Dvojitá hlaveň, ';
+            }
+            if (nextLevelData.extraFeatures.metallic) {
+                specialText += 'Metalické provedení, ';
+            }
+            if (nextLevelData.extraFeatures.criticalChance) {
+                specialText += `${nextLevelData.extraFeatures.criticalChance * 100}% šance na kritický zásah, `;
+            }
+            if (nextLevelData.extraFeatures.laserBeam) {
+                specialText += 'Laserový paprsek, ';
+            }
+            if (nextLevelData.extraFeatures.dualBeam) {
+                specialText += 'Dvojitý paprsek, ';
+            }
+            if (nextLevelData.extraFeatures.burnEffect) {
+                specialText += 'Spalující efekt, ';
+            }
+            if (nextLevelData.extraFeatures.scope) {
+                specialText += 'Zaměřovač, ';
+            }
+            if (nextLevelData.extraFeatures.armorPiercing) {
+                specialText += `${nextLevelData.extraFeatures.armorPiercing * 100}% ignorování armor, `;
+            }
+            if (nextLevelData.extraFeatures.headshotChance) {
+                specialText += `${nextLevelData.extraFeatures.headshotChance * 100}% šance na headshot, `;
+            }
+            
+            // Odstranění poslední čárky a mezery
+            specialText = specialText.replace(/, $/, '');
+        }
+        
+        upgradeSpecial.textContent = specialText || 'Žádný';
+        upgradePrice.textContent = `${tower.getUpgradePrice()}`;
+        
+        // Aktivace tlačítka pro upgrade, pokud má hráč dostatek peněz
+        upgradeTowerButton.disabled = gameState.money < tower.getUpgradePrice();
+    } else {
+        // Skrytí informací o vylepšení, pokud věž nemůže být vylepšena
+        towerUpgradeInfo.style.display = 'none';
+        upgradeTowerButton.disabled = true;
+    }
+}
+
 // Place tower on the grid
 export function placeTower(gridX, gridY, towerType) {
+    // Zrušení případného výběru věže
+    cancelSelection();
+    
     if (isValidPlacement(gameState.grid, gridX, gridY) && gameState.money >= towerTypes[towerType].cost) {
         const cost = towerTypes[towerType].cost;
         gameState.money -= cost;
@@ -358,6 +563,9 @@ export function placeTower(gridX, gridY, towerType) {
         const newTower = new Tower(gridX, gridY, towerType);
         gameState.towers.push(newTower);
         gameState.grid[gridY][gridX].occupied = true;
+        
+        // Vytvoření efektu při umístění
+        createParticles(newTower.x, newTower.y, '#4caf50', 10, 3, 500, 4);
         
         updateUI();
         return true;
@@ -411,4 +619,9 @@ export function updateUI() {
         gameState.state === 'game_over' || 
         gameState.state === 'victory'
     );
+    
+    // Aktualizace UI pro akce s věží
+    if (gameState.selectedTower) {
+        updateTowerActionUI();
+    }
 } 
