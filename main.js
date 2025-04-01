@@ -242,6 +242,21 @@ function initEventListeners() {
     // Canvas click for tower placement and selection
     canvas.addEventListener('click', handleCanvasClick);
     
+    // Right-click to cancel tower placement mode
+    canvas.addEventListener('contextmenu', function(e) {
+        // Prevent default context menu
+        e.preventDefault();
+        
+        // Cancel tower placement if in that mode
+        if (gameState.placingTower) {
+            gameState.selectedTowerType = null;
+            gameState.placingTower = false;
+            updateUI();
+        }
+        
+        return false;
+    });
+    
     // Start wave button
     const { startWaveButton } = getUIElements();
     startWaveButton.addEventListener('click', startNextWave);

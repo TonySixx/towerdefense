@@ -474,7 +474,7 @@ function updateTowerActionUI() {
     const { 
         towerActionsPanel, detailType, detailLevel, detailDamage, detailFireRate, detailRange,
         towerUpgradeInfo, upgradeLevel, upgradeDamage, upgradeFireRate, upgradeRange, upgradeSpecial, upgradePrice,
-        upgradeTowerButton, sellTowerButton, sellValue
+        upgradeTowerButton, upgradeCost, sellTowerButton, sellValue
     } = getUIElements();
     
     // Zobrazíme panel akcí
@@ -484,6 +484,31 @@ function updateTowerActionUI() {
     const towerTypeName = towerTypes[tower.type].name;
     detailType.textContent = towerTypeName;
     detailLevel.textContent = tower.level;
+    
+    // Aktualizace indikátoru úrovně - level dots
+    const levelDots = document.querySelectorAll('.level-dot');
+    levelDots.forEach(dot => {
+        const dotLevel = parseInt(dot.getAttribute('data-level'));
+        dot.classList.remove('active', 'current');
+        
+        // Aktivní tečky pro všechny dosažené úrovně
+        if (dotLevel <= tower.level) {
+            dot.classList.add('active');
+        }
+        
+        // Označení současné úrovně
+        if (dotLevel === tower.level) {
+            dot.classList.add('current');
+        }
+    });
+    
+    // Přidání třídy pro maximální úroveň
+    const levelIndicator = document.querySelector('.level-indicator');
+    if (tower.level === 3) { // max úroveň je 3
+        levelIndicator.classList.add('level-max');
+    } else {
+        levelIndicator.classList.remove('level-max');
+    }
     
     // Aktuální statistiky
     detailDamage.textContent = tower.damage;
@@ -548,6 +573,7 @@ function updateTowerActionUI() {
         
         upgradeSpecial.textContent = specialText || 'None';
         upgradePrice.textContent = `${tower.getUpgradePrice()}`;
+        upgradeCost.textContent = tower.getUpgradePrice();
         
         // Aktivace tlačítka pro upgrade, pokud má hráč dostatek peněz
         upgradeTowerButton.disabled = gameState.money < tower.getUpgradePrice();
@@ -555,6 +581,7 @@ function updateTowerActionUI() {
         // Skrytí informací o vylepšení, pokud věž nemůže být vylepšena
         towerUpgradeInfo.style.display = 'none';
         upgradeTowerButton.disabled = true;
+        upgradeCost.textContent = "MAX";
     }
 }
 

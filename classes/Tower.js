@@ -466,21 +466,96 @@ class Tower {
     
     // Nová metoda pro vykreslení indikátoru úrovně
     drawLevelIndicator(ctx) {
+        const spacing = 1; // Větší mezera mezi hvězdičkami
+        const starSize = 5; // Větší velikost hvězdiček
+        const yOffset = this.y - TILE_SIZE * 0.5 - 8; // Posunutí výše nad věž
+        
+        // Výpočet celkové šířky všech hvězdiček a mezer mezi nimi
+        const totalWidth = (this.level * starSize * 2) + ((this.level - 1) * spacing);
+        const startX = this.x - totalWidth / 2 + starSize;
+        
+        // Animační hodnoty
+        const time = Date.now() / 1000; // Čas v sekundách pro animaci
+        const maxPulse = 0.1; // Maximální hodnota pulzování (10%)
+        
         // Vykreslení hvězdiček podle úrovně věže
-        const starRadius = 4;
-        const spacing = 3;
-        const startX = this.x - (this.level * starRadius + (this.level - 1) * spacing) / 2;
-        
-        ctx.fillStyle = '#FFD700'; // Zlatá barva pro hvězdičky
-        
         for (let i = 0; i < this.level; i++) {
-            const starX = startX + i * (starRadius * 2 + spacing);
-            const starY = this.y - TILE_SIZE * 0.5 - 10;
+            const starX = startX + i * (starSize * 2 + spacing);
             
-            // Vykreslení hvězdičky (zjednodušeně jako kruh)
+            // Různé pulzování pro každou hvězdičku pomocí sinu s fázovým posunem
+            const pulse = 1 + Math.sin(time * 2 + i * 0.7) * maxPulse;
+            const currentSize = starSize * pulse;
+            
+            // Stín pod hvězdičkou pro lepší kontrast
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+            ctx.shadowBlur = 3;
+            ctx.shadowOffsetX = 1;
+            ctx.shadowOffsetY = 1;
+            
+            // Speciální efekt pro poslední úroveň (3)
+            if (this.level === 3) {
+                // Vnější záře
+                const gradientGlow = ctx.createRadialGradient(
+                    starX, yOffset, currentSize * 0.25,
+                    starX, yOffset, currentSize * 1.25
+                );
+                gradientGlow.addColorStop(0, 'rgba(255, 215, 0, 0.7)');
+                gradientGlow.addColorStop(1, 'rgba(255, 215, 0, 0)');
+                
+                ctx.fillStyle = gradientGlow;
+                ctx.beginPath();
+                ctx.arc(starX, yOffset, currentSize * 2.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Barva hvězdičky - gradient pro lepší vzhled
+            const gradient = ctx.createRadialGradient(
+                starX, yOffset, 0,
+                starX, yOffset, currentSize
+            );
+            gradient.addColorStop(0, '#ffffff'); // Bílý střed
+            gradient.addColorStop(0.3, '#ffed7a'); // Světle žlutá
+            gradient.addColorStop(1, '#ffd700'); // Zlatá
+            
+            ctx.fillStyle = gradient;
+            
+            // Vykreslení hvězdičky s 5 cípy
             ctx.beginPath();
-            ctx.arc(starX, starY, starRadius, 0, Math.PI * 2);
+            for (let j = 0; j < 5; j++) {
+                // Vnější bod hvězdičky
+                const outerAngle = (Math.PI * 2 * j) / 5 - Math.PI / 2;
+                const outerX = starX + Math.cos(outerAngle) * currentSize;
+                const outerY = yOffset + Math.sin(outerAngle) * currentSize;
+                
+                if (j === 0) {
+                    ctx.moveTo(outerX, outerY);
+                } else {
+                    ctx.lineTo(outerX, outerY);
+                }
+                
+                // Vnitřní bod hvězdičky (mezi dvěma vnějšími body)
+                const innerAngle = (Math.PI * 2 * j + Math.PI / 5) / 5 - Math.PI / 2;
+                const innerX = starX + Math.cos(innerAngle) * (currentSize * 0.4);
+                const innerY = yOffset + Math.sin(innerAngle) * (currentSize * 0.4);
+                
+                ctx.lineTo(innerX, innerY);
+            }
+            ctx.closePath();
             ctx.fill();
+            
+            // Resetování stínu pro další vykreslení
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            
+            // Přidání malého odrazu světla pro 3D efekt
+            if (this.level === 3) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.beginPath();
+                ctx.arc(starX - currentSize * 0.3, yOffset - currentSize * 0.3, currentSize * 0.15, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
     }
     

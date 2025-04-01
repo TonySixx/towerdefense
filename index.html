@@ -35,27 +35,36 @@
         <div id="game-layout">
             <canvas id="gameCanvas" width="800" height="600"></canvas>
             
-            <!-- Nový sidebar pro zobrazení detailů o věži -->
+            <!-- Sidebar for tower details -->
             <div id="tower-sidebar">
                 <div id="tower-actions" style="display: none;">
-                    <div id="selected-tower-details">
-                        <h3>Tower Details</h3>
-                        <div class="tower-stat">Type: <span id="detail-type">-</span></div>
-                        <div class="tower-stat">Level: <span id="detail-level">-</span></div>
-                        <div class="tower-stat">Damage: <span id="detail-damage">-</span></div>
-                        <div class="tower-stat">Rate: <span id="detail-fire-rate">-</span></div>
-                        <div class="tower-stat">Range: <span id="detail-range">-</span></div>
-                    </div>
-                    <div id="tower-upgrade-info" style="display: none;">
-                        <h3>Upgrade to level <span id="upgrade-level">-</span></h3>
-                        <div class="tower-stat">New damage: <span id="upgrade-damage">-</span></div>
-                        <div class="tower-stat">New rate: <span id="upgrade-fire-rate">-</span></div>
-                        <div class="tower-stat">New range: <span id="upgrade-range">-</span></div>
-                        <div class="tower-stat special-feature">Special effect: <span id="upgrade-special">-</span></div>
-                        <div class="tower-price">Cost: <span id="upgrade-price">-</span></div>
+                    <div class="tower-info-content">
+                        <div id="selected-tower-details">
+                            <h3>Tower Details</h3>
+                            <div class="tower-stat">Type: <span id="detail-type">-</span></div>
+                            <div class="level-indicator">
+                                <div class="level-number"><span id="detail-level">-</span></div>
+                            </div>
+                            <div class="level-dots">
+                                <div class="level-dot" data-level="1"></div>
+                                <div class="level-dot" data-level="2"></div>
+                                <div class="level-dot" data-level="3"></div>
+                            </div>
+                            <div class="tower-stat">Damage: <span id="detail-damage">-</span></div>
+                            <div class="tower-stat">Rate: <span id="detail-fire-rate">-</span></div>
+                            <div class="tower-stat">Range: <span id="detail-range">-</span></div>
+                        </div>
+                        <div id="tower-upgrade-info" style="display: none;">
+                            <h3>Upgrade to level <span id="upgrade-level">-</span></h3>
+                            <div class="tower-stat">New damage: <span id="upgrade-damage">-</span></div>
+                            <div class="tower-stat">New rate: <span id="upgrade-fire-rate">-</span></div>
+                            <div class="tower-stat">New range: <span id="upgrade-range">-</span></div>
+                            <div class="tower-stat special-feature">Special effect: <span id="upgrade-special">-</span></div>
+                            <div class="tower-price">Cost: <span id="upgrade-price">-</span></div>
+                        </div>
                     </div>
                     <div id="tower-action-buttons">
-                        <button id="upgrade-tower-button" disabled>Upgrade</button>
+                        <button id="upgrade-tower-button" disabled>Upgrade (<span id="upgrade-cost">-</span>)</button>
                         <button id="sell-tower-button">Sell (<span id="sell-value">-</span>)</button>
                         <button id="cancel-selection-button">Cancel selection</button>
                     </div>
