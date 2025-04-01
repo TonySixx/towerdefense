@@ -167,7 +167,6 @@ canvas {
 }
 
 #tower-actions {
-    padding: 15px;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -176,6 +175,8 @@ canvas {
 
 /* Scrollable content area - improved styling */
 .tower-info-content {
+    padding:10px;
+    padding-bottom: 40px;
     overflow-y: auto;
     margin-bottom: 15px; /* Space above buttons */
     max-height: calc(100% - 120px); /* Reserve space for buttons */
@@ -199,12 +200,16 @@ canvas {
 }
 
 #selected-tower-details, #tower-upgrade-info {
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: 8px; /* Increased border-radius */
     padding: 15px; /* Increased padding */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Added shadow for depth */
     transition: all 0.3s ease; /* Smooth transitions */
+}
+
+#tower-upgrade-info:last-child {
+    margin-bottom: 40px;
 }
 
 #tower-actions h3 {
@@ -362,7 +367,6 @@ canvas {
     flex-direction: column;
     gap: 10px;
     padding: 15px;
-    padding-bottom:40px;
     background-color: rgba(26, 26, 26, 0.5); /* Slightly darker background for button area */
     border-radius: 8px 8px 0 0; /* Rounded top corners */
     position: absolute; /* Fixed at bottom */
