@@ -142,8 +142,24 @@ function gameLoop(timestamp) {
 // Event Handlers
 function handleMouseMove(e) {
     const rect = canvas.getBoundingClientRect();
-    gameState.mouse.x = e.clientX - rect.left;
-    gameState.mouse.y = e.clientY - rect.top;
+    
+    // Získání vnitřních rozměrů canvasu
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    
+    // Získání skutečných vykreslených rozměrů canvasu (z CSS)
+    const displayWidth = rect.width;
+    const displayHeight = rect.height;
+    
+    // Přepočet souřadnic myši s ohledem na poměr mezi vnitřními rozměry canvasu (800x600) 
+    // a jeho skutečnými vykreslenými rozměry, které se mohou lišit v kompaktním režimu (např. 800x550).
+    // Toto je důležité pro správnou detekci kliknutí na věže a další interakce.
+    const scaleX = canvasWidth / displayWidth;
+    const scaleY = canvasHeight / displayHeight;
+    
+    // Převod souřadnic myši s ohledem na poměr
+    gameState.mouse.x = (e.clientX - rect.left) * scaleX;
+    gameState.mouse.y = (e.clientY - rect.top) * scaleY;
     
     const gridCoords = getGridCoords(gameState.mouse.x, gameState.mouse.y);
     gameState.mouse.gridX = gridCoords.x;
