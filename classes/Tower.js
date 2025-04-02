@@ -183,6 +183,7 @@ class Tower {
                 currentDamage *= 3;
                 this.lastHitWasCritical = true;
             }
+
             
             // Calculate spawn position at the tip of the gun based on angle
             const gunLength = TILE_SIZE * 0.4;
@@ -191,6 +192,13 @@ class Tower {
             
             // Střelba podle typu věže a úrovně
             if (this.visualEffects.doubleBarrel) {
+                
+            let specialEffects = {};
+            if (this.lastHitWasCritical) {
+              specialEffects = {
+                isCritical: true,
+              };
+            }
                 // Dvojitá hlaveň - střílí dva projektily současně
                 const offset = 5; // Offset pro druhý projektil
                 const offsetX = Math.cos(this.angle + Math.PI/2) * offset;
@@ -204,7 +212,8 @@ class Tower {
                     currentDamage, 
                     this.projectileSpeed, 
                     this.projectileColor, 
-                    this.projectileSize
+                    this.projectileSize,
+                    specialEffects
                 ));
                 
                 // Druhý projektil
@@ -215,7 +224,8 @@ class Tower {
                     currentDamage, 
                     this.projectileSpeed, 
                     this.projectileColor, 
-                    this.projectileSize
+                    this.projectileSize,
+                    specialEffects
                 ));
             } else if (this.visualEffects.dualBeam) {
                 // Duální laser - střílí dva projektily za sebou rychle
@@ -259,6 +269,14 @@ class Tower {
                 if (this.visualEffects.armorPiercing) {
                     specialEffects = specialEffects || {};
                     specialEffects.armorPiercing = this.visualEffects.armorPiercing;
+                }
+                
+                // Add critical hit properties if it was a critical hit
+                if (this.lastHitWasCritical) {
+                    specialEffects = specialEffects || {};
+                    specialEffects.isCritical = true;
+                    // Check if it was a headshot (sniper) or a normal critical (machine gun)
+                    specialEffects.isHeadshot = this.visualEffects.headshotChance ? true : false;
                 }
                 
                 // Add chain lightning effect if present

@@ -34,6 +34,15 @@ class Projectile {
                 this.size = size * 1.2; // O 20% větší projektil
             }
             
+            // For critical hits and headshots
+            if (specialEffects.isCritical) {
+                this.size = size * 1.3; // 30% larger projectile
+                this.trailLength = 8; // Longer trail
+                this.isCritical = true;
+                this.criticalColor = specialEffects.isHeadshot ? '#ff5500' : '#ffea00'; // Orange for headshot, yellow for critical
+                this.criticalType = specialEffects.isHeadshot ? 'headshot' : 'critical';
+            }
+            
             // Chain lightning effect - longer trail
             if (specialEffects.chainLightning) {
                 this.trailLength = 12; // Extra long trail for electric effect
@@ -123,6 +132,19 @@ class Projectile {
             
             // Aplikace efektů při zásahu
             if (this.specialEffects) {
+                // Display critical hit or headshot text
+                if (this.specialEffects.isCritical) {
+                    const isHeadshot = this.specialEffects.isHeadshot;
+                    createFloatingText(
+                        this.target.x,
+                        this.target.y - this.target.size * 1.5,
+                        isHeadshot ? 'HEADSHOT! x3' : 'CRITICAL! x2',
+                        isHeadshot ? '#ff5500' : '#ffea00', // Orange for headshot, yellow for critical
+                        isHeadshot ? 20 : 18, // Headshot is larger
+                        1500
+                    );
+                }
+                
                 // Armor piercing - ignoruje část armor nepřítele
                 if (this.specialEffects.armorPiercing) {
                     // Případná implementace armor systému
@@ -390,6 +412,12 @@ class Projectile {
             } else if (this.specialEffects.freezeEffect) {
                 this.drawFreezeEffect(ctx);
                 return;
+            } else if (this.specialEffects.armorPiercing) {
+                this.drawArmorPiercingEffect(ctx);
+                return;
+            } else if (this.specialEffects.isCritical) {
+                this.drawCriticalEffect(ctx);
+                return;
             }
         }
         
@@ -605,6 +633,58 @@ class Projectile {
         
         ctx.closePath();
         ctx.fill();
+    }
+
+    // Add new method to draw critical hit projectile
+    drawCriticalEffect(ctx) {
+        // Draw trail with critical colors
+        for (let i = 0; i < this.trail.length; i++) {
+            const point = this.trail[i];
+            const alpha = point.alpha * 0.8;
+            
+            // Critical gradient
+            const gradient = ctx.createRadialGradient(
+                point.x, point.y, 0,
+                point.x, point.y, this.size * point.alpha * 1.4
+            );
+            gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`); // White core
+            gradient.addColorStop(0.3, `${this.criticalColor.replace(')', `, ${alpha})`).replace('rgb', 'rgba')}`); // Critical color middle
+            gradient.addColorStop(1, 'rgba(255, 100, 0, 0)'); // Fade to transparent
+            
+            ctx.globalAlpha = 1.0;
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, this.size * point.alpha * 1.4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // Draw main projectile with glowing effect
+        const gradient = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.size * 2
+        );
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)'); // White center
+        gradient.addColorStop(0.3, this.criticalColor); // Critical color middle
+        gradient.addColorStop(1, 'rgba(255, 100, 0, 0)'); // Fade to transparent
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Add bright core
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Add pulsing ring for extra effect
+        const ringSize = this.size * (1.5 + Math.sin(Date.now() * 0.01) * 0.3);
+        ctx.strokeStyle = this.criticalColor;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, ringSize, 0, Math.PI * 2);
+        ctx.stroke();
     }
 }
 
