@@ -586,6 +586,20 @@ function updateTowerActionUI() {
                 specialText += ', ';
             }
             
+            // Přidání speciálních efektů pro Pulsar věž
+            if (nextLevelData.extraFeatures.pulsarAreaDamage) {
+                const areaRange = nextLevelData.extraFeatures.pulsarAreaDamage.range;
+                const damagePercent = Math.round(nextLevelData.extraFeatures.pulsarAreaDamage.damageFactor * 100);
+                specialText += `Area Damage (${areaRange} range, ${damagePercent}% damage), `;
+            }
+            
+            if (nextLevelData.extraFeatures.pulsarDebuff) {
+                const slowPercent = Math.round((1-nextLevelData.extraFeatures.pulsarDebuff.slowFactor) * 100);
+                const damageAmp = Math.round((nextLevelData.extraFeatures.pulsarDebuff.damageAmplifier - 1) * 100);
+                const duration = nextLevelData.extraFeatures.pulsarDebuff.duration / 1000;
+                specialText += `Enemy Debuff (${slowPercent}% slow, +${damageAmp}% damage taken, ${duration}s), `;
+            }
+            
             // Odstranění poslední čárky a mezery
             specialText = specialText.replace(/, $/, '');
         }

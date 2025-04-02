@@ -736,6 +736,44 @@ canvas {
     z-index: 1;
 }
 
+.pulsar-icon {
+    background-color: #673AB7; /* Deep purple */
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 0 12px rgba(186, 104, 200, 0.7); /* Purple glow */
+}
+
+.pulsar-icon::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 14px;
+    background: radial-gradient(circle, #E040FB 0%, #9C27B0 70%, #673AB7 100%);
+    border-radius: 50%;
+    animation: pulse-pulsar 1.5s infinite;
+}
+
+.pulsar-icon::after {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 16px;
+    background-color: #4A148C; /* Darker purple */
+    box-shadow: 0 0 8px rgba(186, 104, 200, 0.8);
+}
+
+@keyframes pulse-pulsar {
+    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.7; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.7; }
+}
+
 .tower-name {
     font-size: 0.9em;
     font-weight: 600;

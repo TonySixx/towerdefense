@@ -57,6 +57,12 @@ class Enemy {
         this.slowDuration = 0; // No slow duration by default
         this.isFrozen = false; // Tracker for freeze visual effect
         
+        // Damage amplifier effect for Pulsar tower
+        this.damageAmplifier = {
+            factor: 1.0, // Default is no amplification
+            duration: 0   // No duration by default
+        };
+        
         // Speciální efekty pro bossy
         if (this.isBoss) {
             // Bossy mají silnější pulzaci
@@ -132,7 +138,13 @@ class Enemy {
     }
 
     takeDamage(amount, onDeath = null) {
-        this.health -= amount;
+        // Apply damage amplifier if active
+        let modifiedAmount = amount;
+        if (this.damageAmplifier && this.damageAmplifier.factor > 1.0 && this.damageAmplifier.duration > 0) {
+            modifiedAmount = Math.round(amount * this.damageAmplifier.factor);
+        }
+        
+        this.health -= modifiedAmount;
         if (this.health <= 0 && !this.isDead) {
             this.isDead = true;
             
@@ -161,6 +173,40 @@ class Enemy {
         // Pulsation effect - používáme pulseIntensity podle typu nepřítele
         const pulseFactor = 1.0 + Math.sin(this.pulseTimer / this.pulseSpeed * Math.PI * 2) * this.pulseIntensity;
         const currentSize = this.size * pulseFactor;
+        
+        // Draw damage amplifier effect if active (Pulsar debuff)
+        if (this.damageAmplifier && this.damageAmplifier.factor > 1.0 && this.damageAmplifier.duration > 0) {
+            // Add purple glow effect around enemy
+            const amplifierGlow = ctx.createRadialGradient(
+                this.x, this.y, currentSize * 0.8,
+                this.x, this.y, currentSize * 1.4
+            );
+            
+            amplifierGlow.addColorStop(0, 'rgba(224, 64, 251, 0.5)'); // Purple glow
+            amplifierGlow.addColorStop(1, 'rgba(224, 64, 251, 0)');
+            
+            ctx.fillStyle = amplifierGlow;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, currentSize * 1.4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Pulsating energy particles
+            const particleCount = 4;
+            const particleSize = currentSize * 0.2;
+            const pulseRatio = 0.5 + 0.5 * Math.sin(Date.now() / 300);
+            
+            for (let i = 0; i < particleCount; i++) {
+                const angle = (i / particleCount) * Math.PI * 2 + (this.pulseTimer / 800);
+                const dist = currentSize * (1.1 + 0.1 * pulseRatio);
+                const offsetX = Math.cos(angle) * dist;
+                const offsetY = Math.sin(angle) * dist;
+                
+                ctx.fillStyle = 'rgba(224, 64, 251, ' + (0.4 + 0.3 * pulseRatio) + ')';
+                ctx.beginPath();
+                ctx.arc(this.x + offsetX, this.y + offsetY, particleSize * pulseRatio, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
         
         // Draw freeze effect if enemy is slowed
         if (this.isFrozen) {
@@ -397,6 +443,32 @@ class Enemy {
             this.slowDuration = duration;
             this.isFrozen = true;
         }
+    }
+
+    update(deltaTime) {
+        // Update pulse animation
+        this.pulseTimer += deltaTime;
+        
+        // Update slow effect duration
+        if (this.slowDuration > 0) {
+            this.slowDuration -= deltaTime;
+            if (this.slowDuration <= 0) {
+                // Reset slow effect when duration expires
+                this.slowFactor = 1.0;
+                this.isFrozen = false;
+            }
+        }
+        
+        // Update damage amplifier duration
+        if (this.damageAmplifier && this.damageAmplifier.duration > 0) {
+            this.damageAmplifier.duration -= deltaTime;
+            if (this.damageAmplifier.duration <= 0) {
+                // Reset damage amplifier when duration expires
+                this.damageAmplifier.factor = 1.0;
+            }
+        }
+        
+        this.move(deltaTime);
     }
 }
 

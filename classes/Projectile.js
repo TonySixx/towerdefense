@@ -58,6 +58,16 @@ class Projectile {
                 this.trailLength = 8; // Longer trail for ice effect
                 this.freezeColor = '#80D8FF'; // Light blue for freeze effect
             }
+            
+            // Pulsar area damage effect - apply area damage
+            if (specialEffects.pulsarAreaDamage) {
+                this.pulsarAreaDamage = true;
+            }
+            
+            // Pulsar debuff effect - apply enemy debuff
+            if (specialEffects.pulsarDebuff) {
+                this.pulsarDebuff = true;
+            }
         }
     }
 
@@ -164,6 +174,16 @@ class Projectile {
                 // Freeze effect - apply slow to target
                 if (this.specialEffects.freezeEffect) {
                     this.applyFreezeEffect();
+                }
+                
+                // Pulsar area damage effect - apply area damage
+                if (this.specialEffects.pulsarAreaDamage) {
+                    this.applyPulsarAreaDamage();
+                }
+                
+                // Pulsar debuff effect - apply enemy debuff
+                if (this.specialEffects.pulsarDebuff) {
+                    this.applyPulsarDebuff();
                 }
             }
             
@@ -397,6 +417,117 @@ class Projectile {
         }
     }
 
+    // Apply pulsar area damage to nearby enemies
+    applyPulsarAreaDamage() {
+        if (!this.target || this.target.isDead) return;
+        
+        const areaConfig = this.specialEffects.pulsarAreaDamage;
+        const areaRange = areaConfig.range;
+        const damageFactor = areaConfig.damageFactor;
+        
+        // Find nearby enemies
+        const nearbyEnemies = gameState.enemies.filter(enemy => 
+            !enemy.isDead && 
+            enemy !== this.target && 
+            distance(this.target.x, this.target.y, enemy.x, enemy.y) <= areaRange
+        );
+        
+        // Apply area damage
+        for (const enemy of nearbyEnemies) {
+            // Calculate damage for this enemy
+            const areaDamage = Math.round(this.damage * damageFactor);
+            
+            // Apply damage
+            enemy.takeDamage(areaDamage);
+            
+            // Visual effect - purple damage number
+            createFloatingText(
+                enemy.x, 
+                enemy.y - enemy.size, 
+                `${areaDamage} ✨`, 
+                '#E040FB', // Bright purple
+                16, 
+                1000
+            );
+        }
+        
+        // Create visual effect for area damage
+        this.createPulsarAreaEffect(this.target, areaRange);
+    }
+    
+    // Apply pulsar debuff to the target
+    applyPulsarDebuff() {
+        if (!this.target || this.target.isDead) return;
+        
+        const debuffConfig = this.specialEffects.pulsarDebuff;
+        
+        // Apply debuff to target
+        this.target.applySlowEffect(debuffConfig.slowFactor, debuffConfig.duration);
+        
+        // Store damage amplifier info on the target
+        this.target.damageAmplifier = {
+            factor: debuffConfig.damageAmplifier,
+            duration: debuffConfig.duration
+        };
+        
+        // Visual indicator of debuff application
+        createFloatingText(
+            this.target.x, 
+            this.target.y - this.target.size * 1.5, 
+            'WEAKENED!', 
+            '#E040FB', // Bright purple
+            18, 
+            1500
+        );
+        
+        // Create visual effect
+        createParticles(
+            this.target.x, 
+            this.target.y, 
+            '#E040FB', // Bright purple
+            15, // Number of particles
+            3,  // Speed 
+            debuffConfig.duration * 0.3, // Duration
+            this.target.size * 0.4 // Size
+        );
+    }
+    
+    // Create visual effect for pulsar area damage
+    createPulsarAreaEffect(source, radius) {
+        // Create expanding ring
+        const steps = 10;
+        const center = { x: source.x, y: source.y };
+        
+        for (let i = 1; i <= steps; i++) {
+            setTimeout(() => {
+                if (gameState.state === 'game_over' || gameState.state === 'victory') return;
+                
+                const currentRadius = (radius * i) / steps;
+                const opacity = 1 - (i / steps);
+                
+                // Create particles around the circumference
+                const particleCount = Math.floor(currentRadius / 5);
+                const angleStep = (Math.PI * 2) / particleCount;
+                
+                for (let j = 0; j < particleCount; j++) {
+                    const angle = j * angleStep;
+                    const x = center.x + Math.cos(angle) * currentRadius;
+                    const y = center.y + Math.sin(angle) * currentRadius;
+                    
+                    // Create particle for the ring effect
+                    createParticles(
+                        x, y, 
+                        '#E040FB', // Bright purple
+                        1, // Single particle at each point
+                        0.1, // Very low speed (almost stationary)
+                        300, // Short lifespan
+                        3 * opacity // Size decreases with opacity
+                    );
+                }
+            }, i * 50); // Stagger the rings
+        }
+    }
+
     draw(ctx) {
         // Check if toRemove flag is set
         if (this.toRemove) return;
@@ -417,6 +548,9 @@ class Projectile {
                 return;
             } else if (this.specialEffects.isCritical) {
                 this.drawCriticalEffect(ctx);
+                return;
+            } else if (this.specialEffects.pulsarAreaDamage) {
+                this.drawPulsarEffect(ctx);
                 return;
             }
         }
@@ -577,7 +711,7 @@ class Projectile {
         ctx.fill();
     }
 
-    // Add new method to draw freeze projectile
+    // Draw icy effect
     drawFreezeEffect(ctx) {
         // Draw trail with ice colors
         for (let i = 0; i < this.trail.length; i++) {
@@ -633,6 +767,65 @@ class Projectile {
         
         ctx.closePath();
         ctx.fill();
+    }
+
+    // Draw pulsar energy projectile
+    drawPulsarEffect(ctx) {
+        // Draw trail with energy pulse effect
+        for (let i = 0; i < this.trail.length; i++) {
+            const point = this.trail[i];
+            const alpha = point.alpha * 0.8;
+            
+            // Energy pulse gradient
+            const gradient = ctx.createRadialGradient(
+                point.x, point.y, 0,
+                point.x, point.y, this.size * point.alpha * 1.5
+            );
+            gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`); // White core
+            gradient.addColorStop(0.5, `rgba(224, 64, 251, ${alpha * 0.7})`); // Purple middle
+            gradient.addColorStop(1, `rgba(103, 58, 183, 0)`); // Transparent outer
+            
+            ctx.globalAlpha = 1.0;
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, this.size * point.alpha * 1.5, 0, Math.PI * 2);
+            ctx.fill(); 
+        }
+        
+        // Draw main projectile with energy pulse effect
+        const pulseScale = 0.8 + 0.2 * Math.sin(Date.now() / 100); // Pulsating effect
+        const gradient = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.size * 2 * pulseScale
+        );
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)'); // Bright white center
+        gradient.addColorStop(0.3, 'rgba(224, 64, 251, 0.8)'); // Bright purple middle
+        gradient.addColorStop(1, 'rgba(103, 58, 183, 0)'); // Transparent outer
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * 2 * pulseScale, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Inner bright core
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Energy particles
+        const particleCount = 4;
+        for (let i = 0; i < particleCount; i++) {
+            const angle = (i / particleCount) * Math.PI * 2 + Date.now() / 200;
+            const distance = this.size * 1.2;
+            const particleX = this.x + Math.cos(angle) * distance;
+            const particleY = this.y + Math.sin(angle) * distance;
+            
+            ctx.fillStyle = 'rgba(224, 64, 251, 0.7)';
+            ctx.beginPath();
+            ctx.arc(particleX, particleY, this.size * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
 
     // Add new method to draw critical hit projectile

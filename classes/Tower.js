@@ -296,6 +296,15 @@ class Tower {
                     specialEffects = specialEffects || {};
                     specialEffects.freezeEffect = this.visualEffects.freezeEffect;
                 }
+
+                if (this.visualEffects.pulsarAreaDamage) {
+                    specialEffects = specialEffects || {};
+                    specialEffects.pulsarAreaDamage = this.visualEffects.pulsarAreaDamage;
+                }
+                if (this.visualEffects.pulsarDebuff) {
+                    specialEffects = specialEffects || {};
+                    specialEffects.pulsarDebuff = this.visualEffects.pulsarDebuff;
+                }
                 
                 projectiles.push(new Projectile(
                     projStartX, projStartY, 
@@ -469,6 +478,80 @@ class Tower {
             }
         }
 
+        // Special drawing for Pulsar tower
+        if (this.type === 'pulsar') {
+            // Draw energy core in the center
+            const coreGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, baseRadius * 0.6);
+            coreGradient.addColorStop(0, '#E040FB'); // Bright purple center
+            coreGradient.addColorStop(0.7, '#9C27B0'); // Darker purple
+            coreGradient.addColorStop(1, '#673AB7'); // Base purple
+            
+            // Create pulsating effect based on time
+            const pulseScale = 0.8 + 0.2 * Math.sin(Date.now() / 500); // Subtle pulse
+            
+            ctx.beginPath();
+            ctx.arc(0, 0, baseRadius * 0.6 * pulseScale, 0, Math.PI * 2);
+            ctx.fillStyle = coreGradient;
+            ctx.fill();
+            
+            // Draw energy particles orbiting the tower
+            const particleCount = 4 + this.level * 2; // More particles at higher levels
+            const time = Date.now() / 1000;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const angle = (i / particleCount) * Math.PI * 2 + time * (i % 2 === 0 ? 1 : -1) * 0.5;
+                const dist = baseRadius * (0.8 + 0.1 * Math.sin(time * 2 + i));
+                
+                const particleX = Math.cos(angle) * dist;
+                const particleY = Math.sin(angle) * dist;
+                
+                ctx.beginPath();
+                ctx.arc(particleX, particleY, 2, 0, Math.PI * 2);
+                ctx.fillStyle = this.level === 3 ? '#D500F9' : '#E040FB';
+                ctx.fill();
+            }
+            
+            // Enhanced shooting effect for Pulsar
+            if (this.shootAnimTimer > 0) {
+                const energyBeamOpacity = this.shootAnimTimer / this.shootAnimDuration;
+                ctx.strokeStyle = `rgba(224, 64, 251, ${energyBeamOpacity})`;
+                ctx.lineWidth = 6 * energyBeamOpacity;
+                ctx.beginPath();
+                ctx.moveTo(0, -topRadius);
+                ctx.lineTo(0, -topRadius - gunLength * 1.5);
+                ctx.stroke();
+                
+                // Energy burst at the end of the beam
+                const burstSize = (this.shootAnimDuration - this.shootAnimTimer) / this.shootAnimDuration * 10;
+                ctx.beginPath();
+                ctx.arc(0, -topRadius - gunLength * 1.5, burstSize, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(224, 64, 251, ${energyBeamOpacity * 0.7})`;
+                ctx.fill();
+            }
+            
+            // Level 3 special effect - energy field
+            if (this.level === 3) {
+                const fieldOpacity = 0.2 + 0.1 * Math.sin(Date.now() / 800);
+                ctx.beginPath();
+                ctx.arc(0, 0, baseRadius * 1.2, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(224, 64, 251, ${fieldOpacity})`;
+                ctx.fill();
+                
+                // Energy arcs around the tower
+                const arcCount = 3;
+                for (let i = 0; i < arcCount; i++) {
+                    const startAngle = (i / arcCount) * Math.PI * 2 + Date.now() / 2000;
+                    const endAngle = startAngle + Math.PI / 4;
+                    
+                    ctx.beginPath();
+                    ctx.arc(0, 0, baseRadius * 1.3, startAngle, endAngle);
+                    ctx.strokeStyle = `rgba(213, 0, 249, ${0.6 + 0.2 * Math.sin(Date.now() / 500 + i)})`;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+        }
+        
         ctx.restore(); // Restore context state (translation, rotation)
 
         // Vykreslení efektu úrovně

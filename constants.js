@@ -398,6 +398,85 @@ export const towerTypes = {
         cost: 130, range: 120, damage: 10, fireRate: 600, projectileSpeed: 15,
         colorBase: '#29B6F6', colorTop: '#E1F5FE', colorGun: '#0288D1',
         projectileColor: '#80D8FF', projectileSize: 4
+    },
+    pulsar: {
+        name: "Pulsar",
+        levels: [
+            {
+                level: 1,
+                cost: 300, 
+                range: 160, 
+                damage: 80, 
+                fireRate: 2000, 
+                projectileSpeed: 15,
+                sellValue: 210, // 70% return value
+                upgradePrice: 220,
+                colorBase: '#673AB7', // Deep purple
+                colorTop: '#9C27B0', // Brighter purple
+                colorGun: '#4A148C', // Dark purple
+                projectileColor: '#E040FB', // Bright purple
+                projectileSize: 6,
+                extraFeatures: {
+                    pulsarAreaDamage: {
+                        range: 60,
+                        damageFactor: 0.3 // 30% of main damage
+                    }
+                }
+            },
+            {
+                level: 2,
+                cost: 520, // original + upgrade
+                range: 180, 
+                damage: 120, 
+                fireRate: 1800, 
+                projectileSpeed: 16,
+                sellValue: 364, // 70% return value
+                upgradePrice: 280,
+                colorBase: '#5E35B1', // Deeper purple
+                colorTop: '#BA68C8', // Brighter purple
+                colorGun: '#4A148C', // Dark purple
+                projectileColor: '#EA80FC', // Bright pink-purple
+                projectileSize: 7,
+                extraFeatures: {
+                    pulsarAreaDamage: {
+                        range: 80,
+                        damageFactor: 0.4 // 40% of main damage
+                    },
+                    metallic: true // Reusing existing effect for a premium look
+                }
+            },
+            {
+                level: 3,
+                cost: 800, // total investment
+                range: 200, 
+                damage: 180, 
+                fireRate: 1600, 
+                projectileSpeed: 18,
+                sellValue: 560, // 70% return value
+                upgradePrice: 0, // maximum level
+                colorBase: '#4527A0', // Darkest purple
+                colorTop: '#CE93D8', // Light purple with "energy" look
+                colorGun: '#311B92', // Very dark purple
+                projectileColor: '#D500F9', // Vibrant purple
+                projectileSize: 8,
+                extraFeatures: {
+                    pulsarAreaDamage: {
+                        range: 100,
+                        damageFactor: 0.5 // 50% of main damage
+                    },
+                    pulsarDebuff: {
+                        slowFactor: 0.8, // Slow to 80% of normal speed
+                        damageAmplifier: 1.25, // 25% more damage taken
+                        duration: 3000 // 3 seconds
+                    },
+                    metallic: true // Premium look
+                }
+            }
+        ],
+        // For backward compatibility
+        cost: 300, range: 160, damage: 80, fireRate: 2000, projectileSpeed: 15,
+        colorBase: '#673AB7', colorTop: '#9C27B0', colorGun: '#4A148C',
+        projectileColor: '#E040FB', projectileSize: 6
     }
 };
 
