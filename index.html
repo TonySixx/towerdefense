@@ -28,6 +28,20 @@
                         <div class="map-description">Less money, stronger enemies</div>
                     </button>
                 </div>
+                
+                <!-- Custom Maps Section -->
+                <div id="custom-maps-section">
+                    <h2>Custom Maps:</h2>
+                    <div id="custom-maps-container" class="map-buttons">
+                        <!-- Custom maps will be added here dynamically -->
+                    </div>
+                </div>
+                
+                <div class="editor-buttons">
+                    <button id="create-map-btn" class="editor-btn">Create New Map</button>
+                </div>
+                
+                <!-- Tower Guide button moved to fixed position -->
                 <button id="help-button" class="help-button">
                     <i class="fas fa-question-circle"></i> Tower Guide
                 </button>
@@ -256,6 +270,55 @@
             <h2>Victory!</h2>
             <p>You completed all waves!</p>
             <button id="retry-button">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Map Editor UI -->
+    <div id="map-editor" style="display: none;">
+        <div class="editor-header">
+            <h2>Map Editor</h2>
+            <div id="validation-message" class="validation-message">Create a path with start and end points</div>
+        </div>
+        
+        <div class="editor-container">
+            <div class="editor-sidebar">
+                <div class="editor-tools">
+                    <h3>Tools</h3>
+                    <button id="path-mode-btn" class="editor-btn active">Draw Path</button>
+                    <button id="start-mode-btn" class="editor-btn">Set Start</button>
+                    <button id="end-mode-btn" class="editor-btn">Set End</button>
+                    <button id="erase-mode-btn" class="editor-btn">Erase</button>
+                    <button id="clear-btn" class="editor-btn">Clear All</button>
+                </div>
+                
+                <div class="map-settings">
+                    <h3>Map Settings</h3>
+                    <div class="form-group">
+                        <label for="map-name">Map Name:</label>
+                        <input type="text" id="map-name" placeholder="Enter map name">
+                    </div>
+                    <div class="form-group">
+                        <label for="difficulty-select">Difficulty:</label>
+                        <select id="difficulty-select">
+                            <option value="easy">Easy</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="editor-actions">
+                    <button id="save-map-btn" class="editor-btn primary">Save Map</button>
+                    <button id="exit-editor-btn" class="editor-btn">Back to Menu</button>
+                </div>
+            </div>
+            
+            <div class="editor-main">
+                <canvas id="editorCanvas"></canvas>
+                <div class="editor-instructions">
+                    <p>Click and drag to draw path. Set start and end points. Path must be continuous.</p>
+                </div>
+            </div>
         </div>
     </div>
 

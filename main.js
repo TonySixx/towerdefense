@@ -6,9 +6,24 @@ import {
     sellTower, cancelSelection 
 } from './gameLogic.js';
 import { draw } from './renderers.js';
-import { getGridCoords } from './utils.js';
+import { getGridCoords, createGrid, markPathOnGrid } from './utils.js';
 import Tower from './classes/Tower.js';
 import Particle from './classes/Particle.js';
+import { 
+    initEditor, 
+    handleEditorMouseDown, 
+    handleEditorMouseMove, 
+    handleEditorMouseUp, 
+    exitEditor,
+    editorState,
+    renderEditor,
+    validatePath,
+    saveMap,
+    getCustomMaps,
+    deleteMap,
+    orderPathFromStartToEnd,
+    updateValidationMessage
+} from './mapEditor.js';
 
 // Get required DOM elements
 const canvas = getCanvas();
@@ -367,7 +382,311 @@ function init() {
     
     initEventListeners();
     showMenu();
+    
+    // Initialize map editor
+    initMapEditor();
+    
+    // Load custom maps on startup
+    loadCustomMaps();
 }
 
 // Start game when loaded
-window.addEventListener('load', init); 
+window.addEventListener('load', init);
+
+// Initialize Map Editor
+function initMapEditor() {
+    // Map editor button in main menu
+    const createMapBtn = document.getElementById('create-map-btn');
+    createMapBtn.addEventListener('click', () => {
+        initEditor();
+    });
+    
+    // Editor canvas event listeners
+    const editorCanvas = document.getElementById('editorCanvas');
+    editorCanvas.addEventListener('mousedown', handleEditorMouseDown);
+    editorCanvas.addEventListener('mousemove', handleEditorMouseMove);
+    editorCanvas.addEventListener('mouseup', handleEditorMouseUp);
+    document.addEventListener('mouseup', handleEditorMouseUp); // Handle mouse up outside canvas
+    
+    // Editor tool buttons
+    document.getElementById('path-mode-btn').addEventListener('click', () => {
+        setEditorMode('path');
+    });
+    document.getElementById('start-mode-btn').addEventListener('click', () => {
+        setEditorMode('start');
+    });
+    document.getElementById('end-mode-btn').addEventListener('click', () => {
+        setEditorMode('end');
+    });
+    document.getElementById('erase-mode-btn').addEventListener('click', () => {
+        setEditorMode('erase');
+    });
+    document.getElementById('clear-btn').addEventListener('click', () => {
+        clearEditor();
+    });
+    
+    // Save and exit buttons
+    document.getElementById('save-map-btn').addEventListener('click', () => {
+        saveCurrentMap();
+    });
+    document.getElementById('exit-editor-btn').addEventListener('click', () => {
+        exitEditor();
+    });
+}
+
+// Set editor mode and update UI
+function setEditorMode(mode) {
+    editorState.editMode = mode;
+    
+    // Update button styling
+    const buttons = document.querySelectorAll('.editor-btn');
+    buttons.forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    const activeBtn = document.getElementById(`${mode}-mode-btn`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
+}
+
+// Clear the editor
+function clearEditor() {
+    editorState.path = [];
+    editorState.startPoint = null;
+    editorState.endPoint = null;
+    editorState.grid = createGrid();
+    editorState.validationMessage = '';
+    editorState.isValid = false;
+    renderEditor();
+    updateValidationMessage();
+}
+
+// Save current map
+function saveCurrentMap() {
+    const mapNameInput = document.getElementById('map-name');
+    const mapName = mapNameInput.value.trim();
+    
+    if (!mapName) {
+        alert('Please enter a map name');
+        return;
+    }
+    
+    if (!validatePath()) {
+        alert('Map is not valid. ' + editorState.validationMessage);
+        return;
+    }
+    
+    const difficultySelect = document.getElementById('difficulty-select');
+    const difficulty = difficultySelect.value;
+    
+    // Set difficulty modifiers based on selected option
+    let startMoney = 100;
+    let startHealth = 20;
+    let enemyHealthModifier = 1.0;
+    let waveModifier = 1.0;
+    
+    switch (difficulty) {
+        case 'easy':
+            startMoney = 150;
+            startHealth = 25;
+            enemyHealthModifier = 0.8;
+            waveModifier = 0.9;
+            break;
+        case 'hard':
+            startMoney = 90;
+            startHealth = 15;
+            enemyHealthModifier = 1.2;
+            waveModifier = 1.1;
+            break;
+    }
+    
+    // Create map object
+    const map = {
+        name: mapName,
+        path: orderPathFromStartToEnd(),
+        startMoney,
+        startHealth,
+        enemyHealthModifier,
+        waveModifier
+    };
+    
+    // Get existing custom maps
+    const customMaps = getCustomMaps();
+    
+    const isEditing = editorState.currentMapName === mapName;
+    
+    // Check if map name already exists and it's not the one being edited
+    if (customMaps[mapName] && !isEditing && !confirm(`A map named "${mapName}" already exists. Do you want to overwrite it?`)) {
+        return;
+    }
+    
+    // Add or update map
+    customMaps[mapName] = map;
+    
+    // Save to localStorage
+    localStorage.setItem('towerDefenseCustomMaps', JSON.stringify(customMaps));
+    
+    // Show different message based on whether we're creating or updating
+    if (isEditing) {
+        alert(`Map "${mapName}" updated successfully!`);
+    } else {
+        alert(`Map "${mapName}" saved successfully!`);
+    }
+    
+    // Reload custom maps in menu
+    loadCustomMaps();
+    
+    // Return to main menu
+    exitEditor();
+}
+
+// Load custom maps from localStorage
+function loadCustomMaps() {
+    const customMaps = getCustomMaps();
+    const customMapsContainer = document.getElementById('custom-maps-container');
+    
+    // Clear existing custom maps
+    customMapsContainer.innerHTML = '';
+    
+    // Add custom maps
+    for (const [mapName, map] of Object.entries(customMaps)) {
+        const mapButton = document.createElement('button');
+        mapButton.className = 'map-button custom-map-button';
+        mapButton.dataset.mapName = mapName;
+        mapButton.dataset.mapType = 'custom';
+        
+        const difficultyDiv = document.createElement('div');
+        difficultyDiv.className = 'map-difficulty';
+        difficultyDiv.textContent = mapName;
+        
+        const descriptionDiv = document.createElement('div');
+        descriptionDiv.className = 'map-description';
+        descriptionDiv.textContent = 'Custom Map';
+        
+        // Map action buttons container
+        const mapActionsContainer = document.createElement('div');
+        mapActionsContainer.className = 'map-actions';
+        
+        // Edit button
+        const editBtn = document.createElement('button');
+        editBtn.className = 'edit-map-btn';
+        editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+        editBtn.title = "Edit map";
+        editBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent map selection
+            editCustomMap(mapName);
+        });
+        
+        // Delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-map-btn';
+        deleteBtn.innerHTML = '&times;';
+        deleteBtn.title = "Delete map";
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent map selection
+            
+            if (confirm(`Are you sure you want to delete the map "${mapName}"?`)) {
+                deleteMap(mapName);
+                loadCustomMaps(); // Reload list
+            }
+        });
+        
+        mapActionsContainer.appendChild(editBtn);
+        mapActionsContainer.appendChild(deleteBtn);
+        
+        mapButton.appendChild(difficultyDiv);
+        mapButton.appendChild(descriptionDiv);
+        mapButton.appendChild(mapActionsContainer);
+        
+        // Add click event to start game with custom map
+        mapButton.addEventListener('click', () => {
+            startGameWithCustomMap(mapName);
+        });
+        
+        customMapsContainer.appendChild(mapButton);
+    }
+    
+    // Show/hide the custom maps section
+    const customMapsSection = document.getElementById('custom-maps-section');
+    if (Object.keys(customMaps).length > 0) {
+        customMapsSection.style.display = 'block';
+    } else {
+        customMapsSection.style.display = 'none';
+    }
+}
+
+// Edit an existing custom map
+function editCustomMap(mapName) {
+    const customMaps = getCustomMaps();
+    const map = customMaps[mapName];
+    
+    if (!map) {
+        alert('Map not found!');
+        return;
+    }
+    
+    // Load map into editor
+    initEditor(mapName, map);
+}
+
+// Start game with a custom map
+function startGameWithCustomMap(mapName) {
+    const customMaps = getCustomMaps();
+    const customMap = customMaps[mapName];
+    
+    if (!customMap) {
+        alert('Map not found!');
+        return;
+    }
+    
+    // Hide main menu
+    document.getElementById('main-menu').style.display = 'none';
+    document.getElementById('game-container').style.display = 'flex';
+    
+    // Initialize game with custom map
+    initGameWithCustomMap(customMap);
+}
+
+// Initialize game with custom map
+function initGameWithCustomMap(map) {
+    gameState.currentMapType = 'custom';
+    gameState.currentPath = map.path;
+    gameState.money = map.startMoney;
+    gameState.health = map.startHealth;
+    gameState.enemyHealthModifier = map.enemyHealthModifier;
+    gameState.waveModifier = map.waveModifier;
+    
+    // Reset game state
+    gameState.wave = 0;
+    gameState.enemies = [];
+    gameState.towers = [];
+    gameState.projectiles = [];
+    gameState.particles = [];
+    gameState.floatingTexts = [];
+    gameState.selectedTowerType = null;
+    gameState.placingTower = false;
+    gameState.state = 'waiting';
+    
+    // Reset wave properties
+    gameState.currentWaveConfig = null;
+    gameState.enemyQueue = [];
+    gameState.bossPending = false;
+    gameState.bossConfig = null;
+    
+    // Reset spawn properties
+    gameState.enemiesToSpawn = 0;
+    gameState.spawnCounter = 0;
+    
+    // Setup grid
+    gameState.grid = createGrid();
+    gameState.grid = markPathOnGrid(gameState.grid, gameState.currentPath);
+    
+    updateUI();
+    
+    // Start game loop if not already running
+    if (!gameState.lastTime) {
+        gameState.lastTime = performance.now();
+        requestAnimationFrame(gameLoop);
+    }
+} 
