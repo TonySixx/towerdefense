@@ -1125,3 +1125,263 @@ canvas {
         padding: 15px;
     }
 }
+
+/* Help Button in Main Menu */
+.help-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 1.1em;
+    background: linear-gradient(to bottom, #9575cd, #7e57c2);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.help-button i {
+    margin-right: 8px;
+    font-size: 1.2em;
+}
+
+.help-button:hover {
+    background: linear-gradient(to bottom, #b39ddb, #9575cd);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.help-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Tower Guide Modal */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+}
+
+.modal-content {
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    background: #1e1e2f;
+    border-radius: 10px;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-50px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    padding: 15px 20px;
+    background: linear-gradient(to right, #3f51b5, #7986cb);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 10px 10px 0 0;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.8em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.close-modal {
+    font-size: 28px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.close-modal:hover {
+    color: #ffcc80;
+    transform: scale(1.2);
+}
+
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(90vh - 130px);
+    color: #f2e9e4;
+}
+
+.tower-guide-intro {
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.tower-guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.tower-guide-item {
+    background: rgba(41, 41, 61, 0.7);
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tower-guide-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    background: rgba(61, 61, 91, 0.7);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.tower-guide-icon {
+    width: 50px;
+    height: 50px;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.tower-guide-info {
+    flex-grow: 1;
+}
+
+.tower-guide-info h3 {
+    margin: 0 0 5px 0;
+    color: #ffffff;
+    font-size: 1.4em;
+}
+
+.tower-cost-info {
+    color: #ffd700;
+    font-weight: bold;
+    margin: 5px 0 10px;
+}
+
+.tower-guide-info p {
+    margin: 8px 0;
+    line-height: 1.5;
+    font-size: 0.95em;
+}
+
+.tower-upgrades {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+    font-size: 0.9em;
+    line-height: 1.6;
+}
+
+.tower-guide-tips {
+    background: rgba(76, 175, 80, 0.1);
+    border-left: 4px solid #4CAF50;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+.tower-guide-tips h3 {
+    margin: 0 0 10px 0;
+    color: #81c784;
+}
+
+.tower-guide-tips ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.tower-guide-tips li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    text-align: center;
+    background: rgba(41, 41, 61, 0.8);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.close-guide-button {
+    padding: 10px 25px;
+    background: linear-gradient(to bottom, #3f51b5, #303f9f);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.close-guide-button:hover {
+    background: linear-gradient(to bottom, #5c6bc0, #3f51b5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.close-guide-button:active {
+    transform: translateY(1px);
+}
+
+/* Game controls container */
+.game-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* In-game help button */
+.in-game-help-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(to bottom, #9575cd, #7e57c2);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.in-game-help-button i {
+    font-size: 1.5em;
+}
+
+.in-game-help-button:hover {
+    background: linear-gradient(to bottom, #b39ddb, #9575cd);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.in-game-help-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}

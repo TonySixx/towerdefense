@@ -14,6 +14,41 @@ import Particle from './classes/Particle.js';
 const canvas = getCanvas();
 const ctx = getContext();
 
+// Tower Guide Modal Elements
+const helpButton = document.getElementById('help-button');
+const towerGuideModal = document.getElementById('tower-guide-modal');
+const closeModalButton = document.querySelector('.close-modal');
+const closeGuideButton = document.querySelector('.close-guide-button');
+const inGameHelpButton = document.getElementById('in-game-help');
+
+// Show tower guide modal
+function showTowerGuide() {
+    towerGuideModal.style.display = 'flex';
+    // Add slight animation delay to make sure flex layout is applied first
+    setTimeout(() => {
+        towerGuideModal.style.opacity = '1';
+    }, 10);
+}
+
+// Hide tower guide modal
+function hideTowerGuide() {
+    towerGuideModal.style.opacity = '0';
+    setTimeout(() => {
+        towerGuideModal.style.display = 'none';
+    }, 300); // Match animation duration
+}
+
+// Add event listeners for tower guide
+helpButton.addEventListener('click', showTowerGuide);
+inGameHelpButton.addEventListener('click', showTowerGuide);
+closeModalButton.addEventListener('click', hideTowerGuide);
+closeGuideButton.addEventListener('click', hideTowerGuide);
+towerGuideModal.addEventListener('click', (e) => {
+    if (e.target === towerGuideModal) {
+        hideTowerGuide();
+    }
+});
+
 // Menu functions
 function showMenu() {
     document.getElementById('main-menu').style.display = 'flex';

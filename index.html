@@ -28,6 +28,126 @@
                         <div class="map-description">Less money, stronger enemies</div>
                     </button>
                 </div>
+                <button id="help-button" class="help-button">
+                    <i class="fas fa-question-circle"></i> Tower Guide
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tower Guide Modal -->
+    <div id="tower-guide-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Tower Guide</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="tower-guide-intro">
+                    <p>Welcome to Just Another TD! Here's a guide to all available towers and their specialties:</p>
+                </div>
+                
+                <div class="tower-guide-grid">
+                    <!-- Machine Gun -->
+                    <div class="tower-guide-item">
+                        <div class="tower-guide-icon gun-icon"></div>
+                        <div class="tower-guide-info">
+                            <h3>Machine Gun</h3>
+                            <p class="tower-cost-info">Cost: 50</p>
+                            <p>A rapid-firing tower with balanced stats. Good for early waves and dealing with groups of weaker enemies.</p>
+                            <p class="tower-upgrades">
+                                <strong>Level 2:</strong> Double barrel increases firepower<br>
+                                <strong>Level 3:</strong> Adds critical hit chance (2x damage)
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Laser -->
+                    <div class="tower-guide-item">
+                        <div class="tower-guide-icon laser-icon"></div>
+                        <div class="tower-guide-info">
+                            <h3>Laser</h3>
+                            <p class="tower-cost-info">Cost: 75</p>
+                            <p>Fast-firing tower with moderate damage. Good against clusters of enemies.</p>
+                            <p class="tower-upgrades">
+                                <strong>Level 2:</strong> Adds laser beam visualization<br>
+                                <strong>Level 3:</strong> Adds burning effect that deals damage over time
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Sniper -->
+                    <div class="tower-guide-item">
+                        <div class="tower-guide-icon sniper-icon"></div>
+                        <div class="tower-guide-info">
+                            <h3>Sniper</h3>
+                            <p class="tower-cost-info">Cost: 100</p>
+                            <p>Long-range tower with high damage but slow firing rate. Excellent for targeting strong enemies from a distance.</p>
+                            <p class="tower-upgrades">
+                                <strong>Level 2:</strong> Adds armor piercing capability<br>
+                                <strong>Level 3:</strong> Adds headshot chance (3x damage)
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Railgun -->
+                    <div class="tower-guide-item">
+                        <div class="tower-guide-icon railgun-icon"></div>
+                        <div class="tower-guide-info">
+                            <h3>Railgun</h3>
+                            <p class="tower-cost-info">Cost: 110</p>
+                            <p>Medium-range tower with high projectile speed. Good balance of damage and fire rate.</p>
+                            <p class="tower-upgrades">
+                                <strong>Level 2:</strong> Adds chain lightning to hit secondary targets<br>
+                                <strong>Level 3:</strong> Improved chain lightning and homing projectiles
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Freezer -->
+                    <div class="tower-guide-item">
+                        <div class="tower-guide-icon freezer-icon"></div>
+                        <div class="tower-guide-info">
+                            <h3>Freezer</h3>
+                            <p class="tower-cost-info">Cost: 130</p>
+                            <p>Support tower that slows down enemies, making them easier targets for other towers.</p>
+                            <p class="tower-upgrades">
+                                <strong>Level 2:</strong> Increased slow effect and duration<br>
+                                <strong>Level 3:</strong> Adds area freeze effect to slow multiple enemies
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Pulsar -->
+                    <div class="tower-guide-item">
+                        <div class="tower-guide-icon pulsar-icon"></div>
+                        <div class="tower-guide-info">
+                            <h3>Pulsar</h3>
+                            <p class="tower-cost-info">Cost: 300</p>
+                            <p>Powerful late-game tower with area damage. Perfect for dealing with strong waves and bosses.</p>
+                            <p class="tower-upgrades">
+                                <strong>Level 1:</strong> Area damage affects nearby enemies<br>
+                                <strong>Level 2:</strong> Increased area damage and range<br>
+                                <strong>Level 3:</strong> Maximum area damage plus enemy debuff (slows enemies and makes them take more damage)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tower-guide-tips">
+                    <h3>Tips & Strategy</h3>
+                    <ul>
+                        <li>Mix different tower types for maximum effectiveness</li>
+                        <li>Use Freezer towers to slow down enemies, making them easier targets</li>
+                        <li>Position Sniper towers where they can cover long stretches of the path</li>
+                        <li>Save up for a Pulsar tower for late waves with strong enemies</li>
+                        <li>Upgrade existing towers before building new ones</li>
+                        <li>Focus on tower placement - corners are great spots for maximum enemy exposure</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="close-guide-button">Close Guide</button>
             </div>
         </div>
     </div>
@@ -119,7 +239,10 @@
                         </button>
                     </div>
                 </div>
-                <button id="startWaveButton"><i class="fas fa-play"></i> Start Wave</button>
+                <div class="game-controls">
+                    <button id="startWaveButton"><i class="fas fa-play"></i> Start Wave</button>
+                    <button id="in-game-help" class="in-game-help-button"><i class="fas fa-question-circle"></i></button>
+                </div>
             </div>
             <div id="selected-tower-info">Selected tower: <span id="selected-tower-type">None</span></div>
         </div>
