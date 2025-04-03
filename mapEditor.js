@@ -42,27 +42,44 @@ export function initEditor(existingMapName = null, existingMap = null) {
     const editorHeader = document.querySelector('.editor-header h2');
     const saveButton = document.getElementById('save-map-btn');
     
+    // Get references to custom parameter elements
+    const startMoneyInput = document.getElementById('start-money');
+    const startHealthInput = document.getElementById('start-health');
+    const enemyHealthModifierInput = document.getElementById('enemy-health-modifier');
+    const waveModifierInput = document.getElementById('wave-modifier');
+    const enemyHealthValue = document.getElementById('enemy-health-value');
+    const waveModifierValue = document.getElementById('wave-modifier-value');
+    
     if (existingMap) {
         // Load existing map data
         editorState.currentMapName = existingMapName;
         
-        // Find start and end points in the path
-        let startIndex = -1;
-        let endIndex = -1;
-        
-        // Load difficulty settings
-        const difficultySelect = document.getElementById('difficulty-select');
-        
-        if (existingMap.startMoney === 150 && existingMap.startHealth === 25) {
-            difficultySelect.value = 'easy';
-        } else if (existingMap.startMoney === 90 && existingMap.startHealth === 15) {
-            difficultySelect.value = 'hard';
-        } else {
-            difficultySelect.value = 'medium';
-        }
-        
         // Load map name
         document.getElementById('map-name').value = existingMapName;
+        
+        // Determine difficulty preset or set to custom
+        const difficultySelect = document.getElementById('difficulty-select');
+        
+        if (existingMap.startMoney === 150 && existingMap.startHealth === 25 && 
+            existingMap.enemyHealthModifier === 0.8 && existingMap.waveModifier === 0.9) {
+            difficultySelect.value = 'easy';
+        } else if (existingMap.startMoney === 90 && existingMap.startHealth === 15 && 
+                existingMap.enemyHealthModifier === 1.2 && existingMap.waveModifier === 1.1) {
+            difficultySelect.value = 'hard';
+        } else if (existingMap.startMoney === 100 && existingMap.startHealth === 20 && 
+                existingMap.enemyHealthModifier === 1.0 && existingMap.waveModifier === 1.0) {
+            difficultySelect.value = 'medium';
+        } else {
+            difficultySelect.value = 'custom';
+        }
+        
+        // Set custom parameter values regardless of selected preset
+        startMoneyInput.value = existingMap.startMoney;
+        startHealthInput.value = existingMap.startHealth;
+        enemyHealthModifierInput.value = existingMap.enemyHealthModifier;
+        waveModifierInput.value = existingMap.waveModifier;
+        enemyHealthValue.textContent = existingMap.enemyHealthModifier.toFixed(1);
+        waveModifierValue.textContent = existingMap.waveModifier.toFixed(1);
         
         // Load path data
         for (const point of existingMap.path) {
@@ -88,6 +105,14 @@ export function initEditor(existingMapName = null, existingMap = null) {
         editorState.currentMapName = '';
         document.getElementById('map-name').value = '';
         document.getElementById('difficulty-select').value = 'medium';
+        
+        // Set default values for custom parameters
+        startMoneyInput.value = 100;
+        startHealthInput.value = 20;
+        enemyHealthModifierInput.value = 1.0;
+        waveModifierInput.value = 1.0;
+        enemyHealthValue.textContent = '1.0';
+        waveModifierValue.textContent = '1.0';
         
         // Update editor header and save button
         editorHeader.textContent = 'Map Editor';

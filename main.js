@@ -676,6 +676,26 @@ function initMapEditor() {
     document.getElementById('exit-editor-btn').addEventListener('click', () => {
         exitEditor();
     });
+    
+    // Add event listeners for slider updates
+    const enemyHealthModifierInput = document.getElementById('enemy-health-modifier');
+    const waveModifierInput = document.getElementById('wave-modifier');
+    const enemyHealthValue = document.getElementById('enemy-health-value');
+    const waveModifierValue = document.getElementById('wave-modifier-value');
+    
+    enemyHealthModifierInput.addEventListener('input', function() {
+        enemyHealthValue.textContent = parseFloat(this.value).toFixed(1);
+    });
+    
+    waveModifierInput.addEventListener('input', function() {
+        waveModifierValue.textContent = parseFloat(this.value).toFixed(1);
+    });
+    
+    // Add event listener for difficulty change
+    const difficultySelect = document.getElementById('difficulty-select');
+    difficultySelect.addEventListener('change', function() {
+        updateCustomParams(this.value);
+    });
 }
 
 // Set editor mode and update UI
@@ -706,6 +726,51 @@ function clearEditor() {
     updateValidationMessage();
 }
 
+// Update custom parameter inputs based on selected difficulty
+function updateCustomParams(difficulty) {
+    const startMoneyInput = document.getElementById('start-money');
+    const startHealthInput = document.getElementById('start-health');
+    const enemyHealthModifierInput = document.getElementById('enemy-health-modifier');
+    const waveModifierInput = document.getElementById('wave-modifier');
+    const enemyHealthValue = document.getElementById('enemy-health-value');
+    const waveModifierValue = document.getElementById('wave-modifier-value');
+    
+    // Default values (medium)
+    let startMoney = 100;
+    let startHealth = 20;
+    let enemyHealthModifier = 1.0;
+    let waveModifier = 1.0;
+    
+    // Set values based on difficulty
+    switch (difficulty) {
+        case 'easy':
+            startMoney = 150;
+            startHealth = 25;
+            enemyHealthModifier = 0.8;
+            waveModifier = 0.9;
+            break;
+        case 'hard':
+            startMoney = 90;
+            startHealth = 15;
+            enemyHealthModifier = 1.2;
+            waveModifier = 1.1;
+            break;
+        case 'custom':
+            // Keep current values for custom
+            return;
+    }
+    
+    // Update input values
+    startMoneyInput.value = startMoney;
+    startHealthInput.value = startHealth;
+    enemyHealthModifierInput.value = enemyHealthModifier;
+    waveModifierInput.value = waveModifier;
+    
+    // Update displayed values for sliders
+    enemyHealthValue.textContent = enemyHealthModifier.toFixed(1);
+    waveModifierValue.textContent = waveModifier.toFixed(1);
+}
+
 // Save current map
 function saveCurrentMap() {
     const mapNameInput = document.getElementById('map-name');
@@ -724,25 +789,36 @@ function saveCurrentMap() {
     const difficultySelect = document.getElementById('difficulty-select');
     const difficulty = difficultySelect.value;
     
-    // Set difficulty modifiers based on selected option
-    let startMoney = 100;
-    let startHealth = 20;
-    let enemyHealthModifier = 1.0;
-    let waveModifier = 1.0;
+    // Get values from inputs
+    let startMoney, startHealth, enemyHealthModifier, waveModifier;
     
-    switch (difficulty) {
-        case 'easy':
-            startMoney = 150;
-            startHealth = 25;
-            enemyHealthModifier = 0.8;
-            waveModifier = 0.9;
-            break;
-        case 'hard':
-            startMoney = 90;
-            startHealth = 15;
-            enemyHealthModifier = 1.2;
-            waveModifier = 1.1;
-            break;
+    if (difficulty === 'custom') {
+        // Use values from custom inputs
+        startMoney = parseInt(document.getElementById('start-money').value);
+        startHealth = parseInt(document.getElementById('start-health').value);
+        enemyHealthModifier = parseFloat(document.getElementById('enemy-health-modifier').value);
+        waveModifier = parseFloat(document.getElementById('wave-modifier').value);
+    } else {
+        // Use predefined values based on difficulty
+        startMoney = 100; // Default medium values
+        startHealth = 20;
+        enemyHealthModifier = 1.0;
+        waveModifier = 1.0;
+        
+        switch (difficulty) {
+            case 'easy':
+                startMoney = 150;
+                startHealth = 25;
+                enemyHealthModifier = 0.8;
+                waveModifier = 0.9;
+                break;
+            case 'hard':
+                startMoney = 90;
+                startHealth = 15;
+                enemyHealthModifier = 1.2;
+                waveModifier = 1.1;
+                break;
+        }
     }
     
     // Create map object
