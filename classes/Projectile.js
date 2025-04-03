@@ -59,6 +59,19 @@ class Projectile {
                 this.freezeColor = '#80D8FF'; // Light blue for freeze effect
             }
             
+            // Explosive rounds effect - explosive damage area
+            if (specialEffects.explosiveRounds) {
+                this.explosiveRounds = true;
+                this.explosiveRadius = specialEffects.explosiveRounds.radius;
+                this.explosiveDamageFactor = specialEffects.explosiveRounds.damageFactor;
+                this.trailLength = 8; // Longer trail for explosive effect
+            }
+            
+            // Devastating blows effect - enhanced visuals for critical explosions
+            if (specialEffects.devastatingBlows) {
+                this.devastatingBlows = true;
+            }
+            
             // Pulsar area damage effect - apply area damage
             if (specialEffects.pulsarAreaDamage) {
                 this.pulsarAreaDamage = true;
@@ -174,6 +187,11 @@ class Projectile {
                 // Freeze effect - apply slow to target
                 if (this.specialEffects.freezeEffect) {
                     this.applyFreezeEffect();
+                }
+                
+                // Explosive rounds effect - apply area damage
+                if (this.specialEffects.explosiveRounds) {
+                    this.applyExplosiveRounds();
                 }
                 
                 // Pulsar area damage effect - apply area damage
@@ -343,7 +361,7 @@ class Projectile {
         setTimeout(applyBurnDamage, tickInterval);
     }
 
-    // New method to apply freeze effect
+    // Apply freeze effect to target and nearby enemies
     applyFreezeEffect() {
         if (!this.target || this.target.isDead) return;
         
@@ -417,6 +435,110 @@ class Projectile {
         }
     }
 
+    // Apply explosive rounds effect - area damage at impact point
+    applyExplosiveRounds() {
+        if (!this.target || this.target.isDead) return;
+        
+        // Získání parametrů výbuchu
+        const radius = this.explosiveRadius;
+        const damageFactor = this.explosiveDamageFactor;
+        
+        // Hledání nepřátel v okolí výbuchu
+        const nearbyEnemies = gameState.enemies.filter(enemy => 
+            !enemy.isDead && 
+            enemy !== this.target && // Ignorujeme hlavní cíl, ten už poškození dostal
+            distance(this.target.x, this.target.y, enemy.x, enemy.y) <= radius
+        );
+        
+        // Aplikace plošného poškození všem nepřátelům v okolí
+        for (const enemy of nearbyEnemies) {
+            // Čím blíže ke středu výbuchu, tím větší poškození
+            const dist = distance(this.target.x, this.target.y, enemy.x, enemy.y);
+            const distanceFactor = 1 - dist / radius;
+            const areaDamage = Math.round(this.damage * damageFactor * distanceFactor);
+            
+            // Aplikace poškození
+            enemy.takeDamage(areaDamage);
+            
+            // Vizuální efekt - číslo udávající poškození
+            createFloatingText(
+                enemy.x, 
+                enemy.y - enemy.size, 
+                `${areaDamage} 💥`, 
+                '#FF5722', // Oranžová barva pro výbuch
+                16, 
+                1000
+            );
+        }
+        
+        // Vizuální efekt výbuchu
+        const explosionSize = this.devastatingBlows && this.specialEffects.isCritical ? 1.5 : 1.0;
+        const particleCount = this.devastatingBlows && this.specialEffects.isCritical ? 20 : 12;
+        const explosionColor = this.devastatingBlows && this.specialEffects.isCritical ? '#FF3D00' : '#FF5722';
+        
+        // Efekt výbuchu pomocí částic
+        createParticles(
+            this.target.x, 
+            this.target.y, 
+            explosionColor, 
+            particleCount, 
+            5, 
+            400, 
+            radius * 0.1 * explosionSize
+        );
+        
+        // Druhý set částic pro větší efekt
+        createParticles(
+            this.target.x, 
+            this.target.y, 
+            '#FFA726', // Světlejší oranžová pro kontrast
+            particleCount / 2, 
+            3, 
+            300, 
+            radius * 0.05 * explosionSize
+        );
+        
+        // Vizuální efekt kruhu výbuchu
+        this.createExplosionRing(this.target, radius);
+    }
+    
+    // Create visual effect for explosion radius
+    createExplosionRing(source, radius) {
+        // Create expanding ring using the same technique as pulsar effect
+        const steps = 6;
+        
+        for (let i = 1; i <= steps; i++) {
+            setTimeout(() => {
+                if (gameState.state === 'game_over' || gameState.state === 'victory') return;
+                
+                const currentRadius = (radius * i) / steps;
+                const opacity = 1 - (i / steps);
+                
+                // Create particles around the circumference
+                const particleCount = Math.floor(currentRadius / 4);
+                const angleStep = (Math.PI * 2) / particleCount;
+                
+                for (let j = 0; j < particleCount; j++) {
+                    const angle = j * angleStep;
+                    const x = source.x + Math.cos(angle) * currentRadius;
+                    const y = source.y + Math.sin(angle) * currentRadius;
+                    
+                    // Create particle for the ring effect
+                    if (Math.random() > 0.5) { // Only create some particles for a more chaotic look
+                        createParticles(
+                            x, y, 
+                            i % 2 === 0 ? '#FF5722' : '#FFA726', // Alternate colors
+                            1, // Single particle at each point
+                            0.5, // Low speed
+                            200, // Short lifespan
+                            2 * opacity // Size decreases with opacity
+                        );
+                    }
+                }
+            }, i * 40); // Stagger the rings
+        }
+    }
+    
     // Apply pulsar area damage to nearby enemies
     applyPulsarAreaDamage() {
         if (!this.target || this.target.isDead) return;
@@ -476,7 +598,7 @@ class Projectile {
             this.target.y - this.target.size * 1.5, 
             'WEAKENED!', 
             '#E040FB', // Bright purple
-            18, 
+            16, 
             1500
         );
         
@@ -542,6 +664,9 @@ class Projectile {
                 return;
             } else if (this.specialEffects.freezeEffect) {
                 this.drawFreezeEffect(ctx);
+                return;
+            } else if (this.specialEffects.explosiveRounds) {
+                this.drawExplosiveEffect(ctx);
                 return;
             } else if (this.specialEffects.armorPiercing) {
                 this.drawArmorPiercingEffect(ctx);
@@ -878,6 +1003,81 @@ class Projectile {
         ctx.beginPath();
         ctx.arc(this.x, this.y, ringSize, 0, Math.PI * 2);
         ctx.stroke();
+    }
+
+    // Draw method for explosive projectiles
+    drawExplosiveEffect(ctx) {
+        // Draw the trail first (underneath the projectile)
+        for (let i = 0; i < this.trail.length; i++) {
+            const point = this.trail[i];
+            const alpha = point.alpha * 0.8;
+            
+            // Create fiery gradient for explosive projectiles
+            const gradient = ctx.createRadialGradient(
+                point.x, point.y, 0,
+                point.x, point.y, this.size * point.alpha
+            );
+            gradient.addColorStop(0, `rgba(255, 255, 0, ${alpha * 0.8})`); // Bright yellow core
+            gradient.addColorStop(0.5, `rgba(255, 120, 0, ${alpha * 0.6})`); // Orange middle
+            gradient.addColorStop(1, `rgba(255, 0, 0, 0)`); // Fade to transparent red
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, this.size * point.alpha, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Add glowing particles randomly to the trail
+            if (Math.random() > 0.7) {
+                const particleSize = this.size * 0.3 * point.alpha;
+                const offsetX = (Math.random() - 0.5) * this.size * 1.5;
+                const offsetY = (Math.random() - 0.5) * this.size * 1.5;
+                
+                ctx.fillStyle = `rgba(255, 165, 0, ${alpha * 0.5})`;
+                ctx.beginPath();
+                ctx.arc(point.x + offsetX, point.y + offsetY, particleSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Draw the projectile with an explosive appearance
+        const gradient = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.size * 1.5
+        );
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)'); // Bright center
+        gradient.addColorStop(0.3, 'rgba(255, 255, 0, 0.8)'); // Yellow
+        gradient.addColorStop(0.7, 'rgba(255, 120, 0, 0.6)'); // Orange
+        gradient.addColorStop(1, 'rgba(255, 0, 0, 0)'); // Fade to transparent red
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Core of the projectile
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Add a pulsating effect for devastating blows (critical + devastatingBlows)
+        if (this.devastatingBlows && this.specialEffects.isCritical) {
+            const pulseSize = (Math.sin(Date.now() / 100) + 1) * 0.3 + 0.7; // 0.7 to 1.3
+            
+            // Outer glow for devastating projectiles
+            const outerGradient = ctx.createRadialGradient(
+                this.x, this.y, 0,
+                this.x, this.y, this.size * 2.5 * pulseSize
+            );
+            outerGradient.addColorStop(0, 'rgba(255, 120, 0, 0)');
+            outerGradient.addColorStop(0.7, 'rgba(255, 60, 0, 0.3)');
+            outerGradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+            
+            ctx.fillStyle = outerGradient;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size * 2.5 * pulseSize, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
 }
 

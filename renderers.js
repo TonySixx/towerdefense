@@ -213,6 +213,17 @@ function drawTowerDetailsForPlacement(ctx, mouseX, mouseY, towerType, canPlace) 
         if (levelData.extraFeatures.doubleBarrel) {
             specialText += 'Double Barrel, ';
         }
+        if (levelData.extraFeatures.multiBarrel) {
+            specialText += 'Multi Barrel, ';
+        }
+        if (levelData.extraFeatures.explosiveRounds) {
+            const radius = levelData.extraFeatures.explosiveRounds.radius;
+            const damage = levelData.extraFeatures.explosiveRounds.damageFactor * 100;
+            specialText += `Explosive (${radius} AoE, ${damage}% dmg), `;
+        }
+        if (levelData.extraFeatures.devastatingBlows) {
+            specialText += 'Devastating Blows, ';
+        }
         if (levelData.extraFeatures.metallic) {
             specialText += 'Metallic, ';
         }

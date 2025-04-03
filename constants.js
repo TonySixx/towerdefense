@@ -478,6 +478,90 @@ export const towerTypes = {
         cost: 300, range: 160, damage: 80, fireRate: 2000, projectileSpeed: 15,
         colorBase: '#673AB7', colorTop: '#9C27B0', colorGun: '#4A148C',
         projectileColor: '#E040FB', projectileSize: 6
+    },
+    devastator: {
+        name: "Devastator",
+        levels: [
+            {
+                level: 1,
+                cost: 600, 
+                range: 170, 
+                damage: 32, 
+                fireRate: 300, 
+                projectileSpeed: 12,
+                sellValue: 420, // 70% return value
+                upgradePrice: 400,
+                colorBase: '#8B4513', 
+                colorTop: '#CD853F', 
+                colorGun: '#5D4037',
+                projectileColor: '#FF7043', 
+                projectileSize: 5,
+                // Special effects for level 1
+                extraFeatures: {
+                    multiBarrel: true,
+                    explosiveRounds: {
+                        radius: 20,
+                        damageFactor: 0.3 // 30% of main damage
+                    }
+                }
+            },
+            {
+                level: 2,
+                cost: 1000, // original + upgrade
+                range: 190, 
+                damage: 45, 
+                fireRate: 250, 
+                projectileSpeed: 14,
+                sellValue: 700, // 70% return value
+                upgradePrice: 600,
+                colorBase: '#A0522D', 
+                colorTop: '#E8A87C', 
+                colorGun: '#8B4513',
+                projectileColor: '#FF5722', 
+                projectileSize: 6,
+                // Special effects for level 2
+                extraFeatures: {
+                    multiBarrel: true,
+                    explosiveRounds: {
+                        radius: 30,
+                        damageFactor: 0.4 // 40% of main damage
+                    },
+                    armorPiercing: 0.2, // ignores 20% of enemy armor
+                    metallic: true
+                }
+            },
+            {
+                level: 3,
+                cost: 1600, // total investment
+                range: 210, 
+                damage: 60, 
+                fireRate: 200, 
+                projectileSpeed: 16,
+                sellValue: 1120, // 70% return value
+                upgradePrice: 0, // maximum level
+                colorBase: '#B71C1C', 
+                colorTop: '#FFAB91', 
+                colorGun: '#6D4C41',
+                projectileColor: '#FF3D00', 
+                projectileSize: 7,
+                // Special effects for level 3
+                extraFeatures: {
+                    multiBarrel: true,
+                    explosiveRounds: {
+                        radius: 40,
+                        damageFactor: 0.5 // 50% of main damage
+                    },
+                    armorPiercing: 0.4, // ignores 40% of enemy armor
+                    metallic: true,
+                    criticalChance: 0.2, // 20% chance of critical hit
+                    devastatingBlows: true // Enhanced visual effects for critical hits
+                }
+            }
+        ],
+        // For backward compatibility we keep basic properties of level 1
+        cost: 600, range: 170, damage: 32, fireRate: 300, projectileSpeed: 12,
+        colorBase: '#8B4513', colorTop: '#CD853F', colorGun: '#5D4037',
+        projectileColor: '#FF7043', projectileSize: 5
     }
 };
 

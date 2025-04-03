@@ -478,22 +478,22 @@ function handleKeyDown(e) {
     let numKey = null;
     
     // Zpracování standardních číslic
-    if (e.key >= '1' && e.key <= '6') {
+    if (e.key >= '1' && e.key <= '7') {
         numKey = parseInt(e.key);
     } 
     // Zpracování kláves s kódy, které odpovídají číslicím
     else if (e.code) {
-        // Digit1 až Digit6 pro standardní numerické klávesy
+        // Digit1 až Digit7 pro standardní numerické klávesy
         if (e.code.startsWith('Digit') && e.code.length === 6) {
             const digitChar = e.code.charAt(5);
-            if (digitChar >= '1' && digitChar <= '6') {
+            if (digitChar >= '1' && digitChar <= '7') {
                 numKey = parseInt(digitChar);
             }
         }
-        // Numpad1 až Numpad6 pro numerickou klávesnici
+        // Numpad1 až Numpad7 pro numerickou klávesnici
         else if (e.code.startsWith('Numpad') && e.code.length === 7) {
             const digitChar = e.code.charAt(6);
-            if (digitChar >= '1' && digitChar <= '6') {
+            if (digitChar >= '1' && digitChar <= '7') {
                 numKey = parseInt(digitChar);
             }
         }

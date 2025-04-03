@@ -227,6 +227,76 @@ class Tower {
                     this.projectileSize,
                     specialEffects
                 ));
+            } else if (this.visualEffects.multiBarrel) {
+                // Připravení speciálních efektů
+                let specialEffects = {};
+                
+                // Přidání kritického zásahu, pokud existuje
+                if (this.lastHitWasCritical) {
+                    specialEffects.isCritical = true;
+                }
+                
+                // Přidání výbušných projektilů, pokud existují
+                if (this.visualEffects.explosiveRounds) {
+                    specialEffects.explosiveRounds = this.visualEffects.explosiveRounds;
+                }
+                
+                // Přidání armorPiercing, pokud existuje
+                if (this.visualEffects.armorPiercing) {
+                    specialEffects.armorPiercing = this.visualEffects.armorPiercing;
+                }
+                
+                // Přidání devastatingBlows, pokud existuje
+                if (this.visualEffects.devastatingBlows && this.lastHitWasCritical) {
+                    specialEffects.devastatingBlows = true;
+                }
+                
+                // Multi-barrel - vystřelí tři projektily současně
+                const offset = 8; // Offset pro projektily
+                const angle1 = this.angle + Math.PI/6; // +30 stupňů
+                const angle2 = this.angle - Math.PI/6; // -30 stupňů
+                
+                // Výpočet offsetů pro 3 projektily
+                const offsetX1 = Math.cos(angle1) * offset;
+                const offsetY1 = Math.sin(angle1) * offset;
+                const offsetX2 = Math.cos(angle2) * offset;
+                const offsetY2 = Math.sin(angle2) * offset;
+                
+                // První projektil (levá hlaveň)
+                projectiles.push(new Projectile(
+                    projStartX + offsetX1, 
+                    projStartY + offsetY1, 
+                    this.target, 
+                    currentDamage, 
+                    this.projectileSpeed, 
+                    this.projectileColor, 
+                    this.projectileSize,
+                    specialEffects
+                ));
+                
+                // Druhý projektil (prostřední hlaveň)
+                projectiles.push(new Projectile(
+                    projStartX, 
+                    projStartY, 
+                    this.target, 
+                    currentDamage, 
+                    this.projectileSpeed, 
+                    this.projectileColor, 
+                    this.projectileSize,
+                    specialEffects
+                ));
+                
+                // Třetí projektil (pravá hlaveň)
+                projectiles.push(new Projectile(
+                    projStartX + offsetX2, 
+                    projStartY + offsetY2, 
+                    this.target, 
+                    currentDamage, 
+                    this.projectileSpeed, 
+                    this.projectileColor, 
+                    this.projectileSize,
+                    specialEffects
+                ));
             } else if (this.visualEffects.dualBeam) {
                 // Duální laser - střílí dva projektily za sebou rychle
                 projectiles.push(new Projectile(
@@ -295,6 +365,18 @@ class Tower {
                 if (this.visualEffects.freezeEffect) {
                     specialEffects = specialEffects || {};
                     specialEffects.freezeEffect = this.visualEffects.freezeEffect;
+                }
+
+                // Add explosive rounds effect if present
+                if (this.visualEffects.explosiveRounds) {
+                    specialEffects = specialEffects || {};
+                    specialEffects.explosiveRounds = this.visualEffects.explosiveRounds;
+                }
+                
+                // Add devastating blows effect if present and it's a critical hit
+                if (this.visualEffects.devastatingBlows && this.lastHitWasCritical) {
+                    specialEffects = specialEffects || {};
+                    specialEffects.devastatingBlows = true;
                 }
 
                 if (this.visualEffects.pulsarAreaDamage) {
@@ -434,6 +516,56 @@ class Tower {
             ctx.fillRect(-gunWidth/2 - gunOffset - 1, -topRadius - shootOffset - gunLength - 2, gunWidth + 2, 4);
             ctx.fillRect(-gunWidth/2 + gunOffset - 1, -topRadius - shootOffset - gunLength - 2, gunWidth + 2, 4);
             
+        } else if (this.visualEffects.multiBarrel) {
+            // Vykreslení tří hlavní pro Devastator
+            const gunOffset = 6; // Offset mezi hlavněmi
+            
+            // Pozice hlavní s offsety
+            const positions = [
+                { x: -gunWidth/2 - gunOffset, y: -topRadius - shootOffset },
+                { x: -gunWidth/2, y: -topRadius - shootOffset - 3 }, // Prostřední hlaveň je trochu vepředu
+                { x: -gunWidth/2 + gunOffset, y: -topRadius - shootOffset }
+            ];
+            
+            // Vykreslení tří hlavní
+            for (const pos of positions) {
+                ctx.fillStyle = this.stats.colorGun;
+                ctx.fillRect(pos.x, pos.y, gunWidth, -gunLength);
+                
+                // Konec hlavně
+                ctx.fillStyle = this.stats.colorTop;
+                ctx.fillRect(pos.x - 1, pos.y - gunLength - 2, gunWidth + 2, 4);
+            }
+            
+            // Přidání speciálních detailů pro vyšší úrovně
+            if (this.level >= 2) {
+                // Přidání spojovacího prvku mezi hlavněmi pro lepší vzhled
+                ctx.fillStyle = this.stats.colorGun;
+                ctx.fillRect(-gunWidth/2 - gunOffset - 1, -topRadius - shootOffset - gunLength/2,
+                            gunOffset*2 + gunWidth + 2, 4);
+            }
+            
+            // Pro úroveň 3 přidáme ještě více detailů
+            if (this.level === 3) {
+                // Zdobný prvek nad hlavněmi - vypadá jako "sight"
+                ctx.fillStyle = this.stats.colorTop;
+                ctx.beginPath();
+                ctx.arc(0, -topRadius - shootOffset - gunLength - 8, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Přidání výkonného vzhledu
+                if (this.shootAnimTimer > 0) {
+                    const opacity = this.shootAnimTimer / this.shootAnimDuration;
+                    ctx.fillStyle = `rgba(255, 100, 0, ${opacity * 0.7})`;
+                    
+                    // Efekt výbuchu na koncích hlavní
+                    for (const pos of positions) {
+                        ctx.beginPath();
+                        ctx.arc(pos.x + gunWidth/2, pos.y - gunLength - 2, 4 * opacity, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
         } else {
             // Standardní nebo laserová hlaveň
             const gunX = -gunWidth / 2;

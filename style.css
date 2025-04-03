@@ -761,7 +761,6 @@ canvas {
     height: 14px;
     background: radial-gradient(circle, #E040FB 0%, #9C27B0 70%, #673AB7 100%);
     border-radius: 50%;
-    animation: pulse-pulsar 1.5s infinite;
 }
 
 .pulsar-icon::after {
@@ -2114,4 +2113,35 @@ kbd {
 
 .play-again-button:hover {
     background-color: #ffc107; /* Darker gold on hover */
+}
+
+.devastator-icon {
+    background-color: #8B4513; /* Hnědá barva z constants.js */
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 0 12px rgba(139, 69, 19, 0.7); /* Hnědá záře */
+}
+
+.devastator-icon::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 14px;
+    background: radial-gradient(circle, #FF7043 0%, #CD853F 70%, #8B4513 100%);
+    border-radius: 50%;
+}
+
+.devastator-icon::after {
+    content: '';
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 18px;
+    background-color: #5D4037; /* Tmavší hnědá */
+    box-shadow: 0 0 8px rgba(255, 112, 67, 0.8);
 }

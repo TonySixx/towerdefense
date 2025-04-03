@@ -591,6 +591,17 @@ function updateTowerActionUI() {
             if (nextLevelData.extraFeatures.doubleBarrel) {
                 specialText += 'Double Barrel, ';
             }
+            if (nextLevelData.extraFeatures.multiBarrel) {
+                specialText += 'Multi Barrel (3 projectiles), ';
+            }
+            if (nextLevelData.extraFeatures.explosiveRounds) {
+                const radius = nextLevelData.extraFeatures.explosiveRounds.radius;
+                const damage = Math.round(nextLevelData.extraFeatures.explosiveRounds.damageFactor * 100);
+                specialText += `Explosive Area (${radius} range, ${damage}% damage), `;
+            }
+            if (nextLevelData.extraFeatures.devastatingBlows) {
+                specialText += 'Devastating Critical Hits, ';
+            }
             if (nextLevelData.extraFeatures.metallic) {
                 specialText += 'Metallic Construction, ';
             }
