@@ -42,14 +42,15 @@ export const getUIElements = () => ({
     upgradeCost: document.getElementById('upgrade-cost'),
     sellTowerButton: document.getElementById('sell-tower-button'),
     sellValue: document.getElementById('sell-value'),
-    cancelSelectionButton: document.getElementById('cancel-selection-button')
+    cancelSelectionButton: document.getElementById('cancel-selection-button'),
+    victoryWaveCount: document.getElementById('victory-wave-count')
 });
 
 // Game Settings
 export const TILE_SIZE = 40;
 export const ROWS = 15; // canvas.height / TILE_SIZE;
 export const COLS = 20; // canvas.width / TILE_SIZE;
-export const MAX_WAVES = 20;
+export const MAX_WAVES = 40;
 
 // Tower Definitions
 export const towerTypes = {

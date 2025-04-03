@@ -39,7 +39,8 @@ export const gameState = {
     currentMapType: 'medium',
     currentPath: null,
     enemyHealthModifier: 1.0,
-    waveModifier: 1.0
+    waveModifier: 1.0,
+    maxWaves: 20 // Default pro standardní mapy
 };
 
 // Initialize the game grid
@@ -52,6 +53,7 @@ export function initGame(mapType = 'medium') {
     gameState.health = selectedMap.startHealth;
     gameState.enemyHealthModifier = selectedMap.enemyHealthModifier;
     gameState.waveModifier = selectedMap.waveModifier;
+    gameState.maxWaves = 20; // Default pro standardní mapy
     
     // Reset herního stavu
     gameState.wave = 0;
@@ -167,7 +169,7 @@ export function startNextWave() {
     if (gameState.state !== 'waiting') return;
     
     gameState.wave++;
-    if (gameState.wave > MAX_WAVES) {
+    if (gameState.wave > (gameState.maxWaves || MAX_WAVES)) {
         endGame(true);
         return;
     }
@@ -197,20 +199,68 @@ export function startNextWave() {
         }
     } else {
         // Fallback pro případ, že konfigurace vlny není definována
-        // Použití původního systému generování nepřátel
-        const enemyCount = Math.floor((8 + gameState.wave * 4) * gameState.waveModifier);
-        gameState.enemiesToSpawn = enemyCount;
+        // Automaticky vygenerujeme vlnu podobnou poslední definované vlně, ale s více nepřáteli
+        console.log(`Wave ${gameState.wave} configuration not found, generating dynamic wave`);
+        
+        // Získáme poslední definovanou konfiguraci vlny jako vzor
+        const lastDefinedWave = waveConfigurations[waveConfigurations.length - 1];
+        
+        // Vytvoření fronty nepřátel na základě poslední vlny s postupným zvyšováním obtížnosti
+        // Výpočet multiplikátoru obtížnosti podle toho, jak daleko jsme za definovanými vlnami
+        const difficultyMultiplier = 1 + ((gameState.wave - waveConfigurations.length) * 0.05);
+        
+        // Omezení zvýšení obtížnosti na maximálně dvojnásobek
+        const cappedMultiplier = Math.min(difficultyMultiplier, 2.0);
+        
+        // Vytvoření nové fronty nepřátel na základě poslední definované vlny
+        let dynamicEnemyQueue = [];
+        
+        // Pokud má poslední vlna definované nepřátele, použijeme je jako základ
+        if (lastDefinedWave && lastDefinedWave.enemies) {
+            lastDefinedWave.enemies.forEach(enemyGroup => {
+                // Zvýšíme počet nepřátel podle multiplikátoru, ale jen mírně
+                const adjustedCount = Math.min(
+                    Math.floor(enemyGroup.count * cappedMultiplier),
+                    25 // Maximum 25 nepřátel jednoho typu
+                );
+                
+                // Snížíme spawnDelay pro rychlejší spawnování
+                const adjustedDelay = Math.max(
+                    Math.floor(enemyGroup.spawnDelay * 0.9),
+                    3 // Minimální delay 3ms
+                );
+                
+                dynamicEnemyQueue.push(...Array(adjustedCount).fill().map(() => ({
+                    type: enemyGroup.type,
+                    spawnDelay: adjustedDelay
+                })));
+            });
+        } else {
+            // Pokud není k dispozici poslední vlna, vytvoříme standardní mix
+            const enemyCount = Math.floor((20 + gameState.wave * 2) * gameState.waveModifier);
+            
+            dynamicEnemyQueue = Array(enemyCount).fill().map(() => ({
+                type: 'standard',
+                spawnDelay: 250
+            }));
+        }
+        
+        // Zkontrolujeme, zda má poslední vlna bosse, a případně jej přidáme jako ultimateBoss
+        if (lastDefinedWave && lastDefinedWave.boss) {
+            gameState.bossPending = true;
+            gameState.bossConfig = { 
+                type: 'ultimateBoss', 
+                spawnDelay: 10000
+            };
+        } else {
+            gameState.bossPending = false;
+            gameState.bossConfig = null;
+        }
+        
+        // Nastavíme vygenerovanou frontu nepřátel
+        gameState.enemyQueue = dynamicEnemyQueue;
+        gameState.enemiesToSpawn = dynamicEnemyQueue.length;
         gameState.spawnCounter = 0;
-        
-        // Vytvoření fronty standardních nepřátel
-        gameState.enemyQueue = Array(enemyCount).fill().map(() => ({
-            type: 'standard',
-            spawnDelay: 900
-        }));
-        
-        // Žádný boss
-        gameState.bossPending = false;
-        gameState.bossConfig = null;
     }
     
     // Nastavení časovače pro spawnování
@@ -335,9 +385,15 @@ export function endGame(isVictory) {
     
     if (isVictory) {
         gameState.state = 'victory';
-        const { victoryScreen } = getUIElements();
+        const { victoryScreen, victoryWaveCount } = getUIElements();
+        
+        // Zobrazení počtu dokončených vln
+        if (victoryWaveCount) {
+            victoryWaveCount.textContent = gameState.maxWaves || MAX_WAVES;
+        }
+        
         victoryScreen.style.display = 'block';
-        console.log("Victory!");
+        console.log(`Victory! Completed all ${gameState.maxWaves || MAX_WAVES} waves!`);
     } else {
         gameState.state = 'game_over';
         gameState.health = 0;

@@ -49,6 +49,7 @@ export function initEditor(existingMapName = null, existingMap = null) {
     const waveModifierInput = document.getElementById('wave-modifier');
     const enemyHealthValue = document.getElementById('enemy-health-value');
     const waveModifierValue = document.getElementById('wave-modifier-value');
+    const maxWavesInput = document.getElementById('max-waves');
     
     if (existingMap) {
         // Load existing map data
@@ -80,6 +81,9 @@ export function initEditor(existingMapName = null, existingMap = null) {
         waveModifierInput.value = existingMap.waveModifier;
         enemyHealthValue.textContent = existingMap.enemyHealthModifier.toFixed(1);
         waveModifierValue.textContent = existingMap.waveModifier.toFixed(1);
+        
+        // Set max waves value (defaulting to 20 if not defined)
+        maxWavesInput.value = existingMap.maxWaves || 20;
         
         // Load path data
         for (const point of existingMap.path) {
@@ -113,6 +117,9 @@ export function initEditor(existingMapName = null, existingMap = null) {
         waveModifierInput.value = 1.0;
         enemyHealthValue.textContent = '1.0';
         waveModifierValue.textContent = '1.0';
+        
+        // Set max waves value (defaulting to 20 if not defined)
+        maxWavesInput.value = 20;
         
         // Update editor header and save button
         editorHeader.textContent = 'Map Editor';

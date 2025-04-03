@@ -609,6 +609,18 @@ function initEventListeners() {
         });
     });
     
+    // Event listener pro tlačítko Play Again
+    document.querySelectorAll('.play-again-button, #retry-button').forEach(button => {
+        button.addEventListener('click', () => {
+            document.getElementById('game-over-screen').style.display = 'none';
+            document.getElementById('victory-screen').style.display = 'none';
+            
+            // Vrácení na výběr map
+            document.getElementById('game-view').style.display = 'none';
+            document.getElementById('map-selection').style.display = 'flex';
+        });
+    });
+    
     // Resize event for menu particles
     window.addEventListener('resize', function() {
         const menuCanvas = getMenuCanvas();
@@ -734,12 +746,14 @@ function updateCustomParams(difficulty) {
     const waveModifierInput = document.getElementById('wave-modifier');
     const enemyHealthValue = document.getElementById('enemy-health-value');
     const waveModifierValue = document.getElementById('wave-modifier-value');
+    const maxWavesInput = document.getElementById('max-waves');
     
     // Default values (medium)
     let startMoney = 100;
     let startHealth = 20;
     let enemyHealthModifier = 1.0;
     let waveModifier = 1.0;
+    let maxWaves = 20; // Default is 20 waves for all preset difficulties
     
     // Set values based on difficulty
     switch (difficulty) {
@@ -765,6 +779,7 @@ function updateCustomParams(difficulty) {
     startHealthInput.value = startHealth;
     enemyHealthModifierInput.value = enemyHealthModifier;
     waveModifierInput.value = waveModifier;
+    maxWavesInput.value = maxWaves;
     
     // Update displayed values for sliders
     enemyHealthValue.textContent = enemyHealthModifier.toFixed(1);
@@ -790,7 +805,7 @@ function saveCurrentMap() {
     const difficulty = difficultySelect.value;
     
     // Get values from inputs
-    let startMoney, startHealth, enemyHealthModifier, waveModifier;
+    let startMoney, startHealth, enemyHealthModifier, waveModifier, maxWaves;
     
     if (difficulty === 'custom') {
         // Use values from custom inputs
@@ -798,12 +813,17 @@ function saveCurrentMap() {
         startHealth = parseInt(document.getElementById('start-health').value);
         enemyHealthModifier = parseFloat(document.getElementById('enemy-health-modifier').value);
         waveModifier = parseFloat(document.getElementById('wave-modifier').value);
+        maxWaves = parseInt(document.getElementById('max-waves').value);
+        
+        // Ensure maxWaves is within valid range
+        maxWaves = Math.max(20, Math.min(40, maxWaves));
     } else {
         // Use predefined values based on difficulty
         startMoney = 100; // Default medium values
         startHealth = 20;
         enemyHealthModifier = 1.0;
         waveModifier = 1.0;
+        maxWaves = 20; // Default value for predefined difficulties
         
         switch (difficulty) {
             case 'easy':
@@ -828,7 +848,8 @@ function saveCurrentMap() {
         startMoney,
         startHealth,
         enemyHealthModifier,
-        waveModifier
+        waveModifier,
+        maxWaves
     };
     
     // Get existing custom maps
@@ -914,6 +935,9 @@ function initGameWithCustomMap(map) {
     gameState.health = map.startHealth;
     gameState.enemyHealthModifier = map.enemyHealthModifier;
     gameState.waveModifier = map.waveModifier;
+    
+    // Set maximum number of waves (default to 20 if not defined)
+    gameState.maxWaves = map.maxWaves || 20;
     
     // Reset game state
     gameState.wave = 0;
