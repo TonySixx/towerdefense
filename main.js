@@ -689,18 +689,29 @@ function initMapEditor() {
         exitEditor();
     });
     
-    // Add event listeners for slider updates
+    // Add event listeners for parameter inputs
+    const startMoneyInput = document.getElementById('start-money');
+    const startHealthInput = document.getElementById('start-health');
+    const maxWavesInput = document.getElementById('max-waves');
     const enemyHealthModifierInput = document.getElementById('enemy-health-modifier');
     const waveModifierInput = document.getElementById('wave-modifier');
     const enemyHealthValue = document.getElementById('enemy-health-value');
     const waveModifierValue = document.getElementById('wave-modifier-value');
     
+    // Add event listeners to set custom difficulty when parameters change
+    startMoneyInput.addEventListener('input', setCustomDifficulty);
+    startHealthInput.addEventListener('input', setCustomDifficulty);
+    maxWavesInput.addEventListener('input', setCustomDifficulty);
+    
+    // Add event listeners for slider updates with custom difficulty setting
     enemyHealthModifierInput.addEventListener('input', function() {
         enemyHealthValue.textContent = parseFloat(this.value).toFixed(1);
+        setCustomDifficulty();
     });
     
     waveModifierInput.addEventListener('input', function() {
         waveModifierValue.textContent = parseFloat(this.value).toFixed(1);
+        setCustomDifficulty();
     });
     
     // Add event listener for difficulty change
@@ -784,6 +795,12 @@ function updateCustomParams(difficulty) {
     // Update displayed values for sliders
     enemyHealthValue.textContent = enemyHealthModifier.toFixed(1);
     waveModifierValue.textContent = waveModifier.toFixed(1);
+}
+
+// Set difficulty to custom when parameters are manually changed
+function setCustomDifficulty() {
+    const difficultySelect = document.getElementById('difficulty-select');
+    difficultySelect.value = 'custom';
 }
 
 // Save current map
