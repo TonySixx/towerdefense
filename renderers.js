@@ -132,7 +132,7 @@ function drawTowerDetailsForPlacement(ctx, mouseX, mouseY, towerType, canPlace) 
     const levelData = stats.levels[0]; // Level 1 data (for placement)
     
     // Panel parameters
-    const panelWidth = 200;
+    const panelWidth = 220;
     const lineHeight = 22;
     const panelPadding = 10;
     const panelBorderRadius = 8;
@@ -140,9 +140,23 @@ function drawTowerDetailsForPlacement(ctx, mouseX, mouseY, towerType, canPlace) 
     // Calculate panel height based on content
     let totalLines = 5; // Basic stats (name, cost, damage, firerate, range)
     
-    // Add additional line if tower has special features
+    // Add additional lines if tower has special features
     if (levelData.extraFeatures) {
-        totalLines++;
+        totalLines++; // Základní řádek pro speciální efekty
+        
+        // Přidání dalších řádků pro věže s více efekty
+        if (levelData.extraFeatures.multiBarrel && 
+            (levelData.extraFeatures.explosiveRounds || levelData.extraFeatures.devastatingBlows || 
+             levelData.extraFeatures.metallic || levelData.extraFeatures.criticalChance || 
+             levelData.extraFeatures.armorPiercing)) {
+            totalLines++;
+        }
+        
+        if (levelData.extraFeatures.explosiveRounds && 
+            (levelData.extraFeatures.devastatingBlows || levelData.extraFeatures.metallic || 
+             levelData.extraFeatures.criticalChance || levelData.extraFeatures.armorPiercing)) {
+            totalLines++;
+        }
     }
     
     const panelHeight = lineHeight * totalLines + panelPadding * 2;
@@ -214,12 +228,31 @@ function drawTowerDetailsForPlacement(ctx, mouseX, mouseY, towerType, canPlace) 
             specialText += 'Double Barrel, ';
         }
         if (levelData.extraFeatures.multiBarrel) {
-            specialText += 'Multi Barrel, ';
+            specialText += 'Multi Barrel';
+            // Přidáme řádek pokud máme více speciálních efektů
+            if (levelData.extraFeatures.explosiveRounds || levelData.extraFeatures.devastatingBlows || 
+                levelData.extraFeatures.metallic || levelData.extraFeatures.criticalChance ||
+                levelData.extraFeatures.armorPiercing) {
+                ctx.fillText(specialText, textX, textY);
+                textY += lineHeight;
+                specialText = 'Special: ';
+            } else {
+                specialText += ', ';
+            }
         }
         if (levelData.extraFeatures.explosiveRounds) {
             const radius = levelData.extraFeatures.explosiveRounds.radius;
-            const damage = levelData.extraFeatures.explosiveRounds.damageFactor * 100;
-            specialText += `Explosive (${radius} AoE, ${damage}% dmg), `;
+            const damage = Math.round(levelData.extraFeatures.explosiveRounds.damageFactor * 100);
+            specialText += `Explosion (R:${radius}, ${damage}%)`;
+            // Přidáme řádek pokud máme více speciálních efektů
+            if (levelData.extraFeatures.devastatingBlows || levelData.extraFeatures.metallic || 
+                levelData.extraFeatures.criticalChance || levelData.extraFeatures.armorPiercing) {
+                ctx.fillText(specialText, textX, textY);
+                textY += lineHeight;
+                specialText = 'Special: ';
+            } else {
+                specialText += ', ';
+            }
         }
         if (levelData.extraFeatures.devastatingBlows) {
             specialText += 'Devastating Blows, ';
