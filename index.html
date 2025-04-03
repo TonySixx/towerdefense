@@ -157,6 +157,33 @@
                         <li>Focus on tower placement - corners are great spots for maximum enemy exposure</li>
                     </ul>
                 </div>
+
+                <!-- Nová sekce pro klávesové zkratky -->
+                <div class="tower-guide-shortcuts">
+                    <h3>Keyboard Shortcuts</h3>
+                    <div class="shortcuts-grid">
+                        <div class="shortcuts-column">
+                            <h4>Tower Selection</h4>
+                            <ul>
+                                <li><kbd>1</kbd> - Select Machine Gun</li>
+                                <li><kbd>2</kbd> - Select Laser</li>
+                                <li><kbd>3</kbd> - Select Sniper</li>
+                                <li><kbd>4</kbd> - Select Railgun</li>
+                                <li><kbd>5</kbd> - Select Freezer</li>
+                                <li><kbd>6</kbd> - Select Pulsar</li>
+                            </ul>
+                        </div>
+                        <div class="shortcuts-column">
+                            <h4>Tower Actions</h4>
+                            <ul>
+                                <li><kbd>U</kbd> - Upgrade selected tower</li>
+                                <li><kbd>S</kbd> - Sell selected tower</li>
+                                <li><kbd>Esc</kbd> - Cancel selection</li>
+                                <li><kbd>Space</kbd> - Start next wave</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="close-guide-button">Close Guide</button>
@@ -225,9 +252,18 @@
                         </div>
                     </div>
                     <div id="tower-action-buttons">
-                        <button id="upgrade-tower-button" disabled>Upgrade (<span id="upgrade-cost">-</span>)</button>
-                        <button id="sell-tower-button">Sell (<span id="sell-value">-</span>)</button>
-                        <button id="cancel-selection-button">Cancel selection</button>
+                        <button id="upgrade-tower-button" disabled>
+                            <div class="action-hotkey">U</div>
+                            Upgrade (<span id="upgrade-cost">-</span>)
+                        </button>
+                        <button id="sell-tower-button">
+                            <div class="action-hotkey">S</div>
+                            Sell (<span id="sell-value">-</span>)
+                        </button>
+                        <button id="cancel-selection-button">
+                            <div class="action-hotkey">Esc</div>
+                            Cancel
+                        </button>
                     </div>
                 </div>
                 <div id="tower-help-text">Select a tower to upgrade</div>
@@ -248,31 +284,37 @@
                 <div id="tower-selection-wrapper">
                     <div id="tower-selection">
                         <button class="tower-button" data-type="gun" data-cost="50">
+                            <div class="tower-hotkey">1</div>
                             <div class="tower-icon gun-icon"></div>
                             <div class="tower-name">Machine Gun</div>
                             <div class="tower-cost">50</div>
                         </button>
                         <button class="tower-button" data-type="laser" data-cost="75">
+                            <div class="tower-hotkey">2</div>
                             <div class="tower-icon laser-icon"></div>
                             <div class="tower-name">Laser</div>
                             <div class="tower-cost">75</div>
                         </button>
                         <button class="tower-button" data-type="sniper" data-cost="100">
+                            <div class="tower-hotkey">3</div>
                             <div class="tower-icon sniper-icon"></div>
                             <div class="tower-name">Sniper</div>
                             <div class="tower-cost">100</div>
                         </button>
                         <button class="tower-button" data-type="railgun" data-cost="110">
+                            <div class="tower-hotkey">4</div>
                             <div class="tower-icon railgun-icon"></div>
                             <div class="tower-name">Railgun</div>
                             <div class="tower-cost">110</div>
                         </button>
                         <button class="tower-button" data-type="freezer" data-cost="130">
+                            <div class="tower-hotkey">5</div>
                             <div class="tower-icon freezer-icon"></div>
                             <div class="tower-name">Freezer</div>
                             <div class="tower-cost">130</div>
                         </button>
                         <button class="tower-button" data-type="pulsar" data-cost="300">
+                            <div class="tower-hotkey">6</div>
                             <div class="tower-icon pulsar-icon"></div>
                             <div class="tower-name">Pulsar</div>
                             <div class="tower-cost">300</div>

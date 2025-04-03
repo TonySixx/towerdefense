@@ -447,6 +447,104 @@ function handleCancelSelectionClick() {
     updateUI();
 }
 
+// Handle keyboard shortcuts
+function handleKeyDown(e) {
+    // Kontrola, zda jsme v herním režimu (ne v menu nebo editoru map)
+    if (document.getElementById('game-container').style.display === 'none') {
+        return;
+    }
+    
+    // Ignoruj klávesové zkratky, když uživatel píše do inputu
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+    }
+    
+    // Ignoruj klávesové zkratky, když je otevřené modální okno
+    if (document.getElementById('tower-guide-modal').style.display !== 'none' ||
+        document.getElementById('custom-maps-modal').style.display !== 'none' ||
+        document.getElementById('game-over').style.display !== 'none' ||
+        document.getElementById('victory').style.display !== 'none') {
+        return;
+    }
+    
+    // Ignoruj klávesové zkratky, když je hra ve stavu game_over nebo victory
+    if (gameState.state === 'game_over' || gameState.state === 'victory') {
+        return;
+    }
+    
+    const { towerButtons, upgradeTowerButton, startWaveButton } = getUIElements();
+    
+    // Získání číselné hodnoty z klávesy (funguje pro různé klávesnice)
+    let numKey = null;
+    
+    // Zpracování standardních číslic
+    if (e.key >= '1' && e.key <= '6') {
+        numKey = parseInt(e.key);
+    } 
+    // Zpracování kláves s kódy, které odpovídají číslicím
+    else if (e.code) {
+        // Digit1 až Digit6 pro standardní numerické klávesy
+        if (e.code.startsWith('Digit') && e.code.length === 6) {
+            const digitChar = e.code.charAt(5);
+            if (digitChar >= '1' && digitChar <= '6') {
+                numKey = parseInt(digitChar);
+            }
+        }
+        // Numpad1 až Numpad6 pro numerickou klávesnici
+        else if (e.code.startsWith('Numpad') && e.code.length === 7) {
+            const digitChar = e.code.charAt(6);
+            if (digitChar >= '1' && digitChar <= '6') {
+                numKey = parseInt(digitChar);
+            }
+        }
+    }
+    
+    switch (e.key) {
+        // Klávesa U pro upgrade věže
+        case 'u':
+        case 'U':
+            if (gameState.selectedTower && !upgradeTowerButton.disabled) {
+                handleUpgradeTowerClick();
+            }
+            break;
+        
+        // Klávesa S pro prodej věže
+        case 's':
+        case 'S':
+            if (gameState.selectedTower) {
+                handleSellTowerClick();
+            }
+            break;
+        
+        // Klávesa Esc pro zrušení výběru
+        case 'Escape':
+            if (gameState.selectedTower || gameState.placingTower) {
+                handleCancelSelectionClick();
+            }
+            break;
+            
+        // Mezerník pro spuštění další vlny
+        case ' ':
+            if (!startWaveButton.disabled) {
+                startNextWave();
+            }
+            break;
+    }
+    
+    // Zpracování číselných kláves pro výběr typů věží (odděleno od switch pro podporu více klávesnic)
+    if (numKey !== null) {
+        const index = numKey - 1;
+        // Kontrola, zda existuje tlačítko s tímto indexem
+        if (index >= 0 && index < towerButtons.length) {
+            const button = towerButtons[index];
+            // Simulace kliknutí na tlačítko věže pouze pokud není deaktivované
+            if (!button.disabled) {
+                button.click();
+            }
+        }
+    }
+}
+
 // Initialize Event Listeners
 function initEventListeners() {
     // Mouse movement
@@ -454,6 +552,9 @@ function initEventListeners() {
     
     // Canvas click for tower placement and selection
     canvas.addEventListener('click', handleCanvasClick);
+    
+    // Keyboard shortcuts
+    window.addEventListener('keydown', handleKeyDown);
     
     // Right-click to cancel tower placement mode
     canvas.addEventListener('contextmenu', function(e) {
