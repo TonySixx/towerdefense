@@ -52,6 +52,7 @@ body {
 }
 
 .game-title {
+    margin-top:0px;
     font-size: 4rem;
     margin-bottom: 1.5rem;
     color: #f2e9e4;
@@ -1128,7 +1129,6 @@ canvas {
 
 /* Help Button in Main Menu */
 .help-button {
-    margin-top: 20px;
     padding: 10px 20px;
     font-size: 1.1em;
     background: linear-gradient(to bottom, #9575cd, #7e57c2);
@@ -1172,6 +1172,8 @@ canvas {
     align-items: center;
     justify-content: center;
     overflow-y: auto;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .modal-content {
@@ -1321,8 +1323,8 @@ canvas {
 }
 
 .modal-footer {
+    display: flex;
     padding: 15px 20px;
-    text-align: center;
     background: rgba(41, 41, 61, 0.8);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -1623,17 +1625,219 @@ canvas {
 }
 
 #help-button {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
+    position: absolute;
+    top: 15px;
+    right: 15px;
     z-index: 100;
-    padding: 10px 15px;
-    background-color: rgba(74, 78, 105, 0.9);
-    color: #f2e9e4;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(to bottom, #9575cd, #7e57c2);
+    color: white;
     border: none;
-    border-radius: 8px;
     cursor: pointer;
-    font-size: 1rem;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
+    padding: 0;
+    font-size: 1rem;
+}
+
+#help-button i {
+    font-size: 1.5em;
+    margin-right: 0;
+}
+
+#help-button:hover {
+    background: linear-gradient(to bottom, #b39ddb, #9575cd);
+    transform: rotate(15deg);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+#help-button:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Map Search Input */
+.search-container {
+    margin-bottom: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.map-search-input {
+    padding: 12px 15px;
+    width: 80%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: white;
+    font-size: 1.1em;
+    transition: all 0.3s ease;
+}
+
+.map-search-input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 8px rgba(129, 199, 132, 0.4);
+}
+
+.map-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Custom Maps List */
+.custom-maps-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.custom-map-item {
+    background: rgba(41, 41, 61, 0.7);
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.custom-map-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    background: rgba(61, 61, 91, 0.7);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.custom-map-info {
+    flex-grow: 1;
+    cursor: pointer;
+}
+
+.custom-map-name {
+    font-size: 1.3em;
+    color: #ffffff;
+    margin: 0 0 5px 0;
+}
+
+.custom-map-description {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9em;
+}
+
+.custom-map-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.map-action-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 5px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: white;
+}
+
+.map-action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.map-edit-btn:hover {
+    color: #64b5f6;
+}
+
+.map-delete-btn:hover {
+    color: #ef5350;
+}
+
+.no-maps-message {
+    text-align: center;
+    padding: 20px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.1em;
+}
+
+/* Custom maps button in main menu */
+#open-custom-maps-btn {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 1.2em;
+    background: linear-gradient(to bottom, #673ab7, #5e35b1);
+    margin-bottom: 20px;
+}
+
+#open-custom-maps-btn:hover {
+    background: linear-gradient(to bottom, #7e57c2, #673ab7);
+}
+
+/* Create map button in modal footer */
+#create-map-modal-btn {
+    background: linear-gradient(to bottom, #4CAF50, #388E3C);
+}
+
+#create-map-modal-btn:hover {
+    background: linear-gradient(to bottom, #66BB6A, #4CAF50);
+}
+
+/* Custom maps modal height adjustment */
+#custom-maps-modal .modal-body {
+    max-height: calc(90vh - 180px);
+}
+
+/* Custom maps scrollbar styling */
+.custom-maps-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-maps-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.custom-maps-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+
+.custom-maps-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Modal footer buttons */
+.modal-footer button {
+    padding: 10px 20px;
+    font-size: 1.1em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0 10px;
+}
+
+.close-maps-button {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    
+}
+
+.close-maps-button:hover {
+    background: rgba(255, 255, 255, 0.2);
 }

@@ -36,6 +36,17 @@ const closeModalButton = document.querySelector('.close-modal');
 const closeGuideButton = document.querySelector('.close-guide-button');
 const inGameHelpButton = document.getElementById('in-game-help');
 
+// Custom Maps Modal Elements
+const openCustomMapsButton = document.getElementById('open-custom-maps-btn');
+const customMapsModal = document.getElementById('custom-maps-modal');
+const customMapsCloseButton = document.querySelector('.custom-maps-close');
+const closeMapsButton = document.querySelector('.close-maps-button');
+const mapSearchInput = document.getElementById('map-search');
+const customMapsList = document.getElementById('custom-maps-list');
+const noMapsMessage = document.getElementById('no-maps-message');
+const noSearchResultsMessage = document.getElementById('no-search-results');
+const createMapModalButton = document.getElementById('create-map-modal-btn');
+
 // Show tower guide modal
 function showTowerGuide() {
     towerGuideModal.style.display = 'flex';
@@ -53,15 +64,147 @@ function hideTowerGuide() {
     }, 300); // Match animation duration
 }
 
+// Show custom maps modal
+function showCustomMapsModal() {
+    customMapsModal.style.display = 'flex';
+    // Add slight animation delay to make sure flex layout is applied first
+    setTimeout(() => {
+        customMapsModal.style.opacity = '1';
+    }, 10);
+    
+    // Clear search input
+    mapSearchInput.value = '';
+    
+    // Load custom maps into the modal
+    loadCustomMapsIntoModal();
+}
+
+// Hide custom maps modal
+function hideCustomMapsModal() {
+    customMapsModal.style.opacity = '0';
+    setTimeout(() => {
+        customMapsModal.style.display = 'none';
+    }, 300); // Match animation duration
+}
+
+// Load custom maps into the modal
+function loadCustomMapsIntoModal(searchTerm = '') {
+    const customMaps = getCustomMaps();
+    const mapsList = document.getElementById('custom-maps-list');
+    
+    // Clear existing custom maps
+    mapsList.innerHTML = '';
+    
+    // Filter custom maps based on search term if provided
+    const filteredMaps = searchTerm 
+        ? Object.entries(customMaps).filter(([name]) => 
+            name.toLowerCase().includes(searchTerm.toLowerCase()))
+        : Object.entries(customMaps);
+    
+    // Show appropriate messages if no maps or no search results
+    if (Object.keys(customMaps).length === 0) {
+        noMapsMessage.style.display = 'block';
+        noSearchResultsMessage.style.display = 'none';
+    } else if (filteredMaps.length === 0 && searchTerm) {
+        noMapsMessage.style.display = 'none';
+        noSearchResultsMessage.style.display = 'block';
+    } else {
+        noMapsMessage.style.display = 'none';
+        noSearchResultsMessage.style.display = 'none';
+    }
+    
+    // Add filtered custom maps to the modal
+    for (const [mapName, map] of filteredMaps) {
+        const mapItem = document.createElement('div');
+        mapItem.className = 'custom-map-item';
+        
+        const mapInfo = document.createElement('div');
+        mapInfo.className = 'custom-map-info';
+        mapInfo.addEventListener('click', () => {
+            startGameWithCustomMap(mapName);
+            hideCustomMapsModal();
+        });
+        
+        const mapNameElem = document.createElement('div');
+        mapNameElem.className = 'custom-map-name';
+        mapNameElem.textContent = mapName;
+        
+        const mapDescription = document.createElement('div');
+        mapDescription.className = 'custom-map-description';
+        mapDescription.textContent = 'Custom Map';
+        
+        mapInfo.appendChild(mapNameElem);
+        mapInfo.appendChild(mapDescription);
+        
+        const mapActions = document.createElement('div');
+        mapActions.className = 'custom-map-actions';
+        
+        // Edit button
+        const editBtn = document.createElement('button');
+        editBtn.className = 'map-action-btn map-edit-btn';
+        editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+        editBtn.title = "Edit map";
+        editBtn.addEventListener('click', (e) => {
+            editCustomMap(mapName);
+            hideCustomMapsModal();
+        });
+        
+        // Delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'map-action-btn map-delete-btn';
+        deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+        deleteBtn.title = "Delete map";
+        deleteBtn.addEventListener('click', (e) => {
+            if (confirm(`Are you sure you want to delete the map "${mapName}"?`)) {
+                deleteMap(mapName);
+                // Update main menu button visibility
+                loadCustomMaps();
+                // Reload maps in modal with current search term
+                loadCustomMapsIntoModal(searchTerm);
+            }
+        });
+        
+        mapActions.appendChild(editBtn);
+        mapActions.appendChild(deleteBtn);
+        
+        mapItem.appendChild(mapInfo);
+        mapItem.appendChild(mapActions);
+        
+        mapsList.appendChild(mapItem);
+    }
+}
+
 // Add event listeners for tower guide
 helpButton.addEventListener('click', showTowerGuide);
 inGameHelpButton.addEventListener('click', showTowerGuide);
+
 closeModalButton.addEventListener('click', hideTowerGuide);
 closeGuideButton.addEventListener('click', hideTowerGuide);
 towerGuideModal.addEventListener('click', (e) => {
     if (e.target === towerGuideModal) {
         hideTowerGuide();
     }
+});
+
+// Add event listeners for custom maps modal
+openCustomMapsButton.addEventListener('click', showCustomMapsModal);
+customMapsCloseButton.addEventListener('click', hideCustomMapsModal);
+closeMapsButton.addEventListener('click', hideCustomMapsModal);
+customMapsModal.addEventListener('click', (e) => {
+    if (e.target === customMapsModal) {
+        hideCustomMapsModal();
+    }
+});
+
+// Create map button in modal
+createMapModalButton.addEventListener('click', () => {
+    initEditor();
+    hideCustomMapsModal();
+});
+
+// Search functionality
+mapSearchInput.addEventListener('input', (e) => {
+    loadCustomMapsIntoModal(e.target.value);
 });
 
 // Menu functions
@@ -544,71 +687,9 @@ function saveCurrentMap() {
 // Load custom maps from localStorage
 function loadCustomMaps() {
     const customMaps = getCustomMaps();
-    const customMapsContainer = document.getElementById('custom-maps-container');
-    
-    // Clear existing custom maps
-    customMapsContainer.innerHTML = '';
-    
-    // Add custom maps
-    for (const [mapName, map] of Object.entries(customMaps)) {
-        const mapButton = document.createElement('button');
-        mapButton.className = 'map-button custom-map-button';
-        mapButton.dataset.mapName = mapName;
-        mapButton.dataset.mapType = 'custom';
-        
-        const difficultyDiv = document.createElement('div');
-        difficultyDiv.className = 'map-difficulty';
-        difficultyDiv.textContent = mapName;
-        
-        const descriptionDiv = document.createElement('div');
-        descriptionDiv.className = 'map-description';
-        descriptionDiv.textContent = 'Custom Map';
-        
-        // Map action buttons container
-        const mapActionsContainer = document.createElement('div');
-        mapActionsContainer.className = 'map-actions';
-        
-        // Edit button
-        const editBtn = document.createElement('button');
-        editBtn.className = 'edit-map-btn';
-        editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-        editBtn.title = "Edit map";
-        editBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent map selection
-            editCustomMap(mapName);
-        });
-        
-        // Delete button
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-map-btn';
-        deleteBtn.innerHTML = '&times;';
-        deleteBtn.title = "Delete map";
-        deleteBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent map selection
-            
-            if (confirm(`Are you sure you want to delete the map "${mapName}"?`)) {
-                deleteMap(mapName);
-                loadCustomMaps(); // Reload list
-            }
-        });
-        
-        mapActionsContainer.appendChild(editBtn);
-        mapActionsContainer.appendChild(deleteBtn);
-        
-        mapButton.appendChild(difficultyDiv);
-        mapButton.appendChild(descriptionDiv);
-        mapButton.appendChild(mapActionsContainer);
-        
-        // Add click event to start game with custom map
-        mapButton.addEventListener('click', () => {
-            startGameWithCustomMap(mapName);
-        });
-        
-        customMapsContainer.appendChild(mapButton);
-    }
+    const customMapsSection = document.getElementById('custom-maps-section');
     
     // Show/hide the custom maps section
-    const customMapsSection = document.getElementById('custom-maps-section');
     if (Object.keys(customMaps).length > 0) {
         customMapsSection.style.display = 'block';
     } else {

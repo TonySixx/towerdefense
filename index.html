@@ -32,21 +32,19 @@
                 <!-- Custom Maps Section -->
                 <div id="custom-maps-section">
                     <h2>Custom Maps:</h2>
-                    <div id="custom-maps-container" class="map-buttons">
-                        <!-- Custom maps will be added here dynamically -->
-                    </div>
+                    <button id="open-custom-maps-btn" class="editor-btn">Browse Custom Maps</button>
                 </div>
                 
                 <div class="editor-buttons">
                     <button id="create-map-btn" class="editor-btn">Create New Map</button>
                 </div>
-                
-                <!-- Tower Guide button moved to fixed position -->
-                <button id="help-button" class="help-button">
-                    <i class="fas fa-question-circle"></i> Tower Guide
-                </button>
             </div>
         </div>
+        
+        <!-- Tower Guide button moved to top right corner -->
+        <button id="help-button" class="help-button">
+            <i class="fas fa-question-circle"></i>
+        </button>
     </div>
 
     <!-- Tower Guide Modal -->
@@ -162,6 +160,34 @@
             </div>
             <div class="modal-footer">
                 <button class="close-guide-button">Close Guide</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Maps Modal -->
+    <div id="custom-maps-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Custom Maps</h2>
+                <span class="close-modal custom-maps-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="search-container">
+                    <input type="text" id="map-search" placeholder="Search maps..." class="map-search-input">
+                </div>
+                <div id="custom-maps-list" class="custom-maps-list">
+                    <!-- Custom maps will be added here dynamically -->
+                </div>
+                <div id="no-maps-message" class="no-maps-message" style="display: none;">
+                    <p>No custom maps found. Create your first map!</p>
+                </div>
+                <div id="no-search-results" class="no-maps-message" style="display: none;">
+                    <p>No maps match your search.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="create-map-modal-btn" class="editor-btn primary">Create New Map</button>
+                <button class="close-maps-button">Close</button>
             </div>
         </div>
     </div>

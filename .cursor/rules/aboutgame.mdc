@@ -1,0 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- Tento projekt se jmenuje "Just Another TD", jedná se o Tower Defense hru, která ma zaujmout masivní počet hráčů díky své chytlavosti a jednoduchosti, ale zároveň i funkcemi a možnostmi, které hra nabízí.
+- Unikátní vlastnost této hry je, že si ze sebe trochu dělá legraci, ale zároveň je to skvělá hra.
+- Hra se musí vlézt na obrazovky s rozlišením 1020x720 - mysli na to když budeš cokoliv umisťovat na "herní plochu"
