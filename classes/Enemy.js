@@ -19,6 +19,10 @@ class Enemy {
         this.x = startPos.x;
         this.y = startPos.y;
         
+        // Cached path points for optimization
+        this.targetX = startPos.x;
+        this.targetY = startPos.y;
+        
         // Nastavení životů na základě typu nepřítele a čísla vlny
         this.baseHealth = 60; // Základní hodnota životů
         this.healthGrowth = 1.22; // Růst životů s každou vlnou
@@ -77,6 +81,29 @@ class Enemy {
             // Běžné nastavení pulzace pro běžné nepřátele
             this.pulseIntensity = 0.05;
         }
+        
+        // Visual complexity reduction based on enemy count
+        this.visualComplexity = 1.0; // 1.0 = full detail, lower = reduced detail
+        this.updateVisualComplexity();
+    }
+
+    // New function to update visual complexity based on enemy count
+    updateVisualComplexity() {
+        // Reduce visual complexity as enemy count increases
+        const enemyCount = gameState.enemies.length;
+        
+        if (this.isBoss) {
+            // Bosses maintain higher detail regardless of count, but still scale down a bit
+            this.visualComplexity = Math.max(0.7, 1.0 - (enemyCount / 200) * 0.3);
+        } else {
+            // Regular enemies scale down more aggressively
+            this.visualComplexity = Math.max(0.3, 1.0 - (enemyCount / 100) * 0.7);
+            
+            // If we have performance issues (via gameState), reduce even more
+            if (gameState.currentPerformanceScale < 0.8) {
+                this.visualComplexity *= gameState.currentPerformanceScale;
+            }
+        }
     }
 
     move(deltaTime) {
@@ -92,7 +119,7 @@ class Enemy {
             }
         }
 
-        // Get next path point
+        // Get next path point - optimized to reduce calculations
         const targetPathPointIndex = this.pathIndex + 1;
         
         // Check if reached end of path
@@ -103,13 +130,17 @@ class Enemy {
             return;
         }
 
-        // Get target position
-        const targetGridPos = gameState.currentPath[targetPathPointIndex];
-        const targetCanvasPos = getCanvasCoords(targetGridPos.x, targetGridPos.y);
+        // Get target position - cache target for performance
+        if (this.targetX === undefined || this.targetY === undefined) {
+            const targetGridPos = gameState.currentPath[targetPathPointIndex];
+            const targetCanvasPos = getCanvasCoords(targetGridPos.x, targetGridPos.y);
+            this.targetX = targetCanvasPos.x;
+            this.targetY = targetCanvasPos.y;
+        }
         
-        // Calculate direction and distance to next point
-        const dx = targetCanvasPos.x - this.x;
-        const dy = targetCanvasPos.y - this.y;
+        // Calculate direction and distance to next point - using cached target
+        const dx = this.targetX - this.x;
+        const dy = this.targetY - this.y;
         const distToTarget = Math.sqrt(dx * dx + dy * dy);
         
         // Calculate movement for this frame - Apply slow factor
@@ -117,23 +148,37 @@ class Enemy {
 
         // Check if reached next path point
         if (distToTarget <= moveDistance) {
-            this.x = targetCanvasPos.x;
-            this.y = targetCanvasPos.y;
+            this.x = this.targetX;
+            this.y = this.targetY;
             this.pathIndex++;
+            
+            // Clear cached target so we'll recalculate on next frame
+            this.targetX = undefined;
+            this.targetY = undefined;
         } else {
             // Move towards next point
             this.x += (dx / distToTarget) * moveDistance;
             this.y += (dy / distToTarget) * moveDistance;
         }
 
-        // Update pulse timer for visual effect
-        this.pulseTimer += deltaTime;
+        // Update pulse timer for visual effect - only if visual complexity is high enough
+        const enemyCount = gameState.enemies.length;
+        const updateVisuals = (this.isBoss || enemyCount < 30 || Math.random() < this.visualComplexity);
         
-        // Aktualizace rotace koruny pro bossy
-        if (this.isBoss) {
-            this.crownRotation += this.crownRotationSpeed * (deltaTime / 1000);
-            // Zajistíme, aby úhel byl vždy v rozmezí 0-360
-            this.crownRotation = this.crownRotation % (2 * Math.PI);
+        if (updateVisuals) {
+            this.pulseTimer += deltaTime;
+            
+            // Only update visual complexity occasionally to save CPU
+            if (this.pulseTimer % 1000 < deltaTime) {
+                this.updateVisualComplexity();
+            }
+            
+            // Aktualizace rotace koruny pro bossy
+            if (this.isBoss) {
+                this.crownRotation += this.crownRotationSpeed * (deltaTime / 1000);
+                // Zajistíme, aby úhel byl vždy v rozmezí 0-360
+                this.crownRotation = this.crownRotation % (2 * Math.PI);
+            }
         }
     }
 
@@ -169,13 +214,33 @@ class Enemy {
         if (this.isDead) return;
 
         const healthPercent = this.health / this.maxHealth;
+        const enemyCount = gameState.enemies.length;
+        
+        // Simplified drawing when too many enemies on screen
+        const isSimpleDraw = enemyCount > 50 && !this.isBoss && this.visualComplexity < 0.5;
+        
+        if (isSimpleDraw) {
+            // Very simple rendering for better performance
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size * 0.8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Only show health bar if health is not full
+            if (healthPercent < 0.9) {
+                this.drawHealthBar(ctx, healthPercent, true);
+            }
+            return;
+        }
 
-        // Pulsation effect - používáme pulseIntensity podle typu nepřítele
-        const pulseFactor = 1.0 + Math.sin(this.pulseTimer / this.pulseSpeed * Math.PI * 2) * this.pulseIntensity;
+        // Pulsation effect - scale based on visual complexity
+        const pulseFactor = 1.0 + Math.sin(this.pulseTimer / this.pulseSpeed * Math.PI * 2) 
+                              * this.pulseIntensity * this.visualComplexity;
         const currentSize = this.size * pulseFactor;
         
-        // Draw damage amplifier effect if active (Pulsar debuff)
-        if (this.damageAmplifier && this.damageAmplifier.factor > 1.0 && this.damageAmplifier.duration > 0) {
+        // Draw special effects if needed (based on visual complexity)
+        if (this.damageAmplifier && this.damageAmplifier.factor > 1.0 && 
+            this.damageAmplifier.duration > 0 && this.visualComplexity > 0.4) {
             // Add purple glow effect around enemy
             const amplifierGlow = ctx.createRadialGradient(
                 this.x, this.y, currentSize * 0.8,
@@ -280,37 +345,50 @@ class Enemy {
         ctx.stroke();
         
         // Vykreslení speciálních prvků pro bossy
-        if (this.isBoss) {
+        if (this.isBoss && this.visualComplexity > 0.5) {
             this.drawBossFeatures(ctx, currentSize);
         }
 
-        // Health bar
-        const healthBarWidth = Math.max(15, this.size * 1.2);
-        const healthBarHeight = 4;
-        const healthBarX = this.x - healthBarWidth / 2;
-        const healthBarY = this.y - currentSize - healthBarHeight - 3;
-        const currentHealthWidth = healthBarWidth * healthPercent;
-
-        // Health bar background
-        ctx.fillStyle = '#333';
-        ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
+        // Draw health bar with option to simplify
+        this.drawHealthBar(ctx, healthPercent, isSimpleDraw);
+    }
+    
+    // New helper function to draw health bar with simplified option
+    drawHealthBar(ctx, healthPercent, simplified = false) {
+        // Determine health bar color based on health percentage
+        let healthColor;
+        if (healthPercent > 0.6) {
+            healthColor = '#4caf50'; // Green
+        } else if (healthPercent > 0.3) {
+            healthColor = '#ff9800'; // Orange
+        } else {
+            healthColor = '#f44336'; // Red
+        }
         
-        // Health bar fill with gradient
-        const healthGrad = ctx.createLinearGradient(healthBarX, healthBarY, healthBarX + healthBarWidth, healthBarY);
-        healthGrad.addColorStop(0, '#f44336'); // Red (low health)
-        healthGrad.addColorStop(0.5, '#ffeb3b'); // Yellow (mid health)
-        healthGrad.addColorStop(1, '#4caf50'); // Green (full health)
-        ctx.fillStyle = healthGrad;
-        ctx.fillRect(healthBarX, healthBarY, Math.max(0, currentHealthWidth), healthBarHeight);
-        
-        // Health bar border
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
-        
-        // Pro bossy přidáme štítek s názvem
-        if (this.isBoss) {
-            this.drawBossLabel(ctx, currentSize);
+        // Draw simplified or detailed health bar
+        if (simplified) {
+            // Simplified health bar (just a line)
+            const barWidth = this.size * 1.5 * healthPercent;
+            const barHeight = 2;
+            const barX = this.x - this.size * 0.75;
+            const barY = this.y - this.size - 4;
+            
+            ctx.fillStyle = healthColor;
+            ctx.fillRect(barX, barY, barWidth, barHeight);
+        } else {
+            // Detailed health bar with border
+            const barWidth = this.size * 1.5;
+            const barHeight = 3;
+            const barX = this.x - barWidth / 2;
+            const barY = this.y - this.size - 6;
+            
+            // Draw background
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(barX, barY, barWidth, barHeight);
+            
+            // Draw health
+            ctx.fillStyle = healthColor;
+            ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
         }
     }
     

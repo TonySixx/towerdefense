@@ -45,7 +45,13 @@ export const gameState = {
     showParticles: true,
     showFloatingTexts: true,
     particleIntensity: 1.0, // Intenzita částicových efektů (0.0 - 1.0)
-    floatingTextIntensity: 1.0 // Intenzita plovoucích textů (0.0 - 1.0)
+    floatingTextIntensity: 1.0, // Intenzita plovoucích textů (0.0 - 1.0)
+    
+    // Performance optimization settings
+    maxParticles: 500, // Maximum number of particles allowed
+    maxFloatingTexts: 100, // Maximum number of floating texts
+    autoAdjustEffects: true, // Automatically adjust effects based on performance
+    currentPerformanceScale: 1.0 // Scale factor for effects (adjusted based on performance)
 };
 
 // Initialize the game grid
@@ -90,19 +96,62 @@ export function initGame(mapType = 'medium') {
 
 // Helper function to create particles
 export function createParticles(x, y, color, count, speed, life, size) {
-    // Upravit počet částic podle nastavené intenzity
-    const adjustedCount = Math.max(1, Math.round(count * gameState.particleIntensity));
+    // Skip if particles are disabled
+    if (!gameState.showParticles) return;
     
+    // Check current particle count
+    if (gameState.particles.length >= gameState.maxParticles) {
+        // If we're at the limit, either skip or replace oldest particles
+        if (gameState.autoAdjustEffects) {
+            // Scale down desired count based on how full the particle system is
+            const fillFactor = gameState.particles.length / gameState.maxParticles;
+            count = Math.max(1, Math.floor(count * (1 - fillFactor * 0.8)));
+            
+            // If still too many, just create one or two for the effect
+            if (gameState.particles.length + count > gameState.maxParticles * 1.1) {
+                count = Math.min(2, count);
+            }
+            
+            // If we're severely over limit, remove some old particles
+            if (gameState.particles.length > gameState.maxParticles) {
+                // Remove excess particles from the beginning (oldest first)
+                gameState.particles.splice(0, count);
+            }
+            
+            // Adjust current performance scale
+            gameState.currentPerformanceScale = Math.max(0.2, 1 - fillFactor);
+        } else {
+            // Just enforce the hard limit by removing old particles
+            gameState.particles.splice(0, Math.min(count, gameState.particles.length));
+        }
+    }
+    
+    // Adjust count based on current settings and performance scale
+    const intensityFactor = gameState.particleIntensity * gameState.currentPerformanceScale;
+    const adjustedCount = Math.max(1, Math.round(count * intensityFactor));
+    
+    // Create only the adjusted number of particles
     for (let i = 0; i < adjustedCount; i++) {
         gameState.particles.push(new Particle(x, y, color, size, speed, life));
     }
 }
 
-// Helper function to create floating text
+// Helper function to create floating text with performance optimization
 export function createFloatingText(x, y, text, color = '#ffd700', size = 16, lifespan = 1500) {
-    // Upravit velikost textu podle nastavené intenzity
-    const adjustedSize = Math.max(8, Math.round(size * gameState.floatingTextIntensity));
+    // Skip if floating texts are disabled
+    if (!gameState.showFloatingTexts) return;
     
+    // Check if we're at the limit
+    if (gameState.floatingTexts.length >= gameState.maxFloatingTexts) {
+        // If we're at the limit, replace oldest text
+        gameState.floatingTexts.shift();
+    }
+    
+    // Adjust size based on settings and performance
+    const intensityFactor = gameState.floatingTextIntensity * gameState.currentPerformanceScale;
+    const adjustedSize = Math.max(8, Math.floor(size * intensityFactor));
+    
+    // Create the floating text with adjusted size
     gameState.floatingTexts.push(new FloatingText(x, y, text, color, adjustedSize, lifespan));
 }
 
@@ -291,6 +340,22 @@ export function update(deltaTime) {
     // Update screen flash effect
     updateScreenFlash(deltaTime);
 
+    // Update performance scaling based on deltaTime
+    if (gameState.autoAdjustEffects && deltaTime > 33) { // More than 33ms per frame (less than 30 FPS)
+        // Reduce performance scale when frame time is high (lower FPS)
+        const performanceIssue = (deltaTime - 33) / 30; // How much over our target frame time
+        gameState.currentPerformanceScale = Math.max(
+            0.2, // Don't go below 20% effects
+            gameState.currentPerformanceScale - performanceIssue * 0.01
+        );
+    } else if (gameState.autoAdjustEffects && deltaTime < 20 && gameState.currentPerformanceScale < 1.0) {
+        // Gradually restore performance scale when frame time is good (high FPS)
+        gameState.currentPerformanceScale = Math.min(
+            1.0, // Don't go above 100% effects
+            gameState.currentPerformanceScale + 0.005
+        );
+    }
+
     // Enemy Spawning - upravená logika pro nový systém vln
     if (gameState.state === 'wave_inprogress') {
         gameState.timeSinceLastSpawn += deltaTime;
@@ -338,10 +403,47 @@ export function update(deltaTime) {
     gameState.floatingTexts.forEach(text => text.update(deltaTime));
 
     // Cleanup
-    gameState.enemies = gameState.enemies.filter(enemy => !enemy.isDead);
-    gameState.projectiles = gameState.projectiles.filter(proj => !proj.toRemove);
-    gameState.particles = gameState.particles.filter(p => p.life > 0 && p.size >= 1);
-    gameState.floatingTexts = gameState.floatingTexts.filter(text => text.life > 0);
+    let i = 0;
+    while (i < gameState.enemies.length) {
+        if (gameState.enemies[i].isDead) {
+            gameState.enemies.splice(i, 1);
+        } else {
+            i++;
+        }
+    }
+    
+    i = 0;
+    while (i < gameState.projectiles.length) {
+        if (gameState.projectiles[i].toRemove) {
+            gameState.projectiles.splice(i, 1);
+        } else {
+            i++;
+        }
+    }
+    
+    if (gameState.particles.length > 0) {
+        i = 0;
+        const batchSize = Math.min(50, gameState.particles.length); // Process in batches
+        while (i < batchSize) {
+            if (i < gameState.particles.length && (gameState.particles[i].life <= 0 || gameState.particles[i].size < 1)) {
+                gameState.particles.splice(i, 1);
+            } else {
+                i++;
+            }
+        }
+    }
+    
+    if (gameState.floatingTexts.length > 0) {
+        i = 0;
+        const batchSize = Math.min(20, gameState.floatingTexts.length); // Process in batches
+        while (i < batchSize) {
+            if (i < gameState.floatingTexts.length && gameState.floatingTexts[i].life <= 0) {
+                gameState.floatingTexts.splice(i, 1);
+            } else {
+                i++;
+            }
+        }
+    }
 
     // Check Wave End - upravená logika pro kontrolu konce vlny
     if (gameState.state === 'wave_inprogress' && 

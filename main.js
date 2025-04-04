@@ -28,6 +28,13 @@ import {
 // Track game loop animation frame
 let gameLoopId = null;
 
+// FPS tracking variables
+let lastFrameTime = 0;
+let frameCount = 0;
+let fps = 0;
+let fpsUpdateInterval = 500; // Update FPS display every 500ms
+let lastFpsUpdate = 0;
+
 // Get required DOM elements
 const canvas = getCanvas();
 const ctx = getContext();
@@ -463,20 +470,29 @@ function initMenuParticles() {
 
 // Game Loop
 function gameLoop(timestamp) {
-    if (!gameState.lastTime) gameState.lastTime = timestamp; // Initialize lastTime on first frame
-    const deltaTime = timestamp - gameState.lastTime;
+    // Calculate delta time for smooth animations
+    const deltaTime = timestamp - (gameState.lastTime || timestamp);
     gameState.lastTime = timestamp;
-
-    // Skip update/draw if deltaTime is excessive (e.g., tab was inactive)
-    if (deltaTime <= 0 || deltaTime > 200) {
-        gameLoopId = requestAnimationFrame(gameLoop);
-        return;
+    
+    // Update FPS calculation
+    frameCount++;
+    if (timestamp - lastFpsUpdate >= fpsUpdateInterval) {
+        fps = Math.round((frameCount * 1000) / (timestamp - lastFpsUpdate));
+        frameCount = 0;
+        lastFpsUpdate = timestamp;
     }
-
-    // Update game state
+    
+    // Update and draw game state
     update(deltaTime);
     
-    // Draw the game - předáváme celý gameState, který obsahuje všechny potřebné informace
+    // Get canvas and context for drawing
+    const canvas = getCanvas();
+    const ctx = getContext();
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw game
     draw(
         ctx, 
         canvas, 
@@ -488,12 +504,24 @@ function gameLoop(timestamp) {
         gameState.particles, 
         gameState.placingTower, 
         gameState.selectedTowerType, 
-        gameState.mouse,
+        gameState.mouse, 
         gameState.money
     );
-
-    // Continue the game loop
+    
+    // Draw FPS counter in bottom right
+    drawFpsCounter(ctx, canvas.width, canvas.height);
+    
+    // Continue game loop
     gameLoopId = requestAnimationFrame(gameLoop);
+}
+
+// Function to draw FPS counter
+function drawFpsCounter(ctx, width, height) {
+    ctx.font = '11px Arial';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(`${fps} FPS`, width - 10, height - 10);
 }
 
 // Event Handlers

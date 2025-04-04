@@ -322,6 +322,16 @@ function drawTowerDetailsForPlacement(ctx, mouseX, mouseY, towerType, canPlace) 
     }
 }
 
+// Helper function to check if an entity is on screen (with some margin)
+function isOnScreen(x, y, size, canvas, margin = 50) {
+    return (
+        x + size + margin >= 0 &&
+        x - size - margin <= canvas.width &&
+        y + size + margin >= 0 &&
+        y - size - margin <= canvas.height
+    );
+}
+
 // Main draw function that combines all rendering
 export function draw(ctx, canvas, gameState, grid, towers, projectiles, enemies, particles, placingTower, selectedTowerType, mouse, money) {
     // Draw background
@@ -333,19 +343,45 @@ export function draw(ctx, canvas, gameState, grid, towers, projectiles, enemies,
     // Draw path - použít aktuální cestu z gameState
     drawPath(ctx, canvas, gameState.currentPath);
 
-    // Draw game objects
+    // Draw game objects with culling
+    // Towers - usually all on screen, so no culling needed
     towers.forEach(tower => tower.draw(ctx, placingTower, selectedTowerType, mouse.gridX, mouse.gridY));
-    projectiles.forEach(proj => proj.draw(ctx));
-    enemies.forEach(enemy => enemy.draw(ctx));
     
-    // Draw particles only if enabled in settings
-    if (gameState.showParticles) {
-        particles.forEach(particle => particle.draw(ctx));
+    // Projectiles - small, fast-moving objects, apply culling with margin
+    for (let i = 0; i < projectiles.length; i++) {
+        const proj = projectiles[i];
+        if (isOnScreen(proj.x, proj.y, proj.size, canvas, 20)) {
+            proj.draw(ctx);
+        }
     }
     
-    // Draw floating texts only if enabled in settings
+    // Enemies - apply culling
+    for (let i = 0; i < enemies.length; i++) {
+        const enemy = enemies[i];
+        if (isOnScreen(enemy.x, enemy.y, enemy.size, canvas, 30)) {
+            enemy.draw(ctx);
+        }
+    }
+    
+    // Draw particles only if enabled in settings and on screen
+    if (gameState.showParticles) {
+        for (let i = 0; i < particles.length; i++) {
+            const particle = particles[i];
+            // For particles, use a smaller margin since they're visual effects only
+            if (isOnScreen(particle.x, particle.y, particle.size, canvas, 10)) {
+                particle.draw(ctx);
+            }
+        }
+    }
+    
+    // Draw floating texts only if enabled in settings and on screen
     if (gameState.showFloatingTexts && gameState.floatingTexts) {
-        gameState.floatingTexts.forEach(text => text.draw(ctx));
+        for (let i = 0; i < gameState.floatingTexts.length; i++) {
+            const text = gameState.floatingTexts[i];
+            if (isOnScreen(text.x, text.y, 10, canvas, 20)) {
+                text.draw(ctx);
+            }
+        }
     }
 
     // Draw placement preview
@@ -362,4 +398,34 @@ export function draw(ctx, canvas, gameState, grid, towers, projectiles, enemies,
 
     // Draw screen flash effect at the end
     drawScreenFlash(ctx, canvas);
+    
+    // Draw performance indicator
+    if (gameState.autoAdjustEffects) {
+        drawPerformanceIndicator(ctx, canvas, gameState.currentPerformanceScale);
+    }
+}
+
+// Function to show current performance level
+function drawPerformanceIndicator(ctx, canvas, scale) {
+    // Only show when performance is being scaled down
+    if (scale >= 0.98) return;
+    
+    const indicatorSize = 5;
+    const x = canvas.width - 20;
+    const y = canvas.height - 25;
+    
+    // Draw a small indicator dot
+    ctx.beginPath();
+    ctx.arc(x, y, indicatorSize, 0, Math.PI * 2);
+    
+    // Color based on performance scale
+    if (scale > 0.7) {
+        ctx.fillStyle = 'rgba(255, 255, 0, 0.7)'; // Yellow
+    } else if (scale > 0.4) {
+        ctx.fillStyle = 'rgba(255, 165, 0, 0.7)'; // Orange
+    } else {
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.7)'; // Red
+    }
+    
+    ctx.fill();
 } 

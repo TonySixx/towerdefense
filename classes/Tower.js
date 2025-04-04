@@ -45,6 +45,10 @@ class Tower {
         
         // Cíl pro střelbu
         this.target = null;
+        
+        // Target acquisition optimization
+        this.targetCooldown = 0;
+        this.targetCooldownDuration = 200; // ms - how often to search for new target
     }
     
     // Načtení statistik podle aktuální úrovně
@@ -121,34 +125,39 @@ class Tower {
     }
 
     findTarget(enemies) {
+        // Skip target searching if on cooldown and have a valid target
+        if (this.targetCooldown > 0 && this.target && !this.target.isDead && 
+            distance(this.x, this.y, this.target.x, this.target.y) <= this.range) {
+            return;
+        }
+        
+        // Reset target cooldown
+        this.targetCooldown = this.targetCooldownDuration;
+        
+        // If current target is still valid, keep it
+        if (this.target && !this.target.isDead && 
+            distance(this.x, this.y, this.target.x, this.target.y) <= this.range) {
+            return;
+        }
+        
+        // Need to find a new target
         this.target = null;
         let closestDist = this.range + 1;
-
-        // First try to find any target
-        for (const enemy of enemies) {
+        
+        // Simplified single pass to find closest valid target
+        for (let i = 0; i < enemies.length; i++) {
+            const enemy = enemies[i];
             if (enemy.isDead) continue;
-            const dist = distance(this.x, this.y, enemy.x, enemy.y);
-            if (dist <= this.range && dist < closestDist) {
+            
+            // Use squared distance to avoid sqrt calculation
+            const dx = this.x - enemy.x;
+            const dy = this.y - enemy.y;
+            const distSq = dx * dx + dy * dy;
+            const rangeSq = this.range * this.range;
+            
+            if (distSq <= rangeSq && (this.target === null || distSq < closestDist)) {
                 this.target = enemy;
-                closestDist = dist;
-            }
-        }
-
-        // Keep targeting if still in range
-        if (this.target && (this.target.isDead || distance(this.x, this.y, this.target.x, this.target.y) > this.range)) {
-            this.target = null;
-        }
-
-        // Find new if needed
-        if (!this.target) {
-            closestDist = this.range + 1;
-            for (const enemy of enemies) {
-                if (enemy.isDead) continue;
-                const dist = distance(this.x, this.y, enemy.x, enemy.y);
-                if (dist <= this.range && dist < closestDist) {
-                    this.target = enemy;
-                    closestDist = dist;
-                }
+                closestDist = distSq;
             }
         }
     }
@@ -430,6 +439,11 @@ class Tower {
             if (this.effectsTimers[timerKey] > 0) {
                 this.effectsTimers[timerKey] -= deltaTime;
             }
+        }
+        
+        // Update target cooldown
+        if (this.targetCooldown > 0) {
+            this.targetCooldown -= deltaTime;
         }
         
         this.findTarget(enemies);
