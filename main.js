@@ -25,6 +25,9 @@ import {
     updateValidationMessage
 } from './mapEditor.js';
 
+// Track game loop animation frame
+let gameLoopId = null;
+
 // Get required DOM elements
 const canvas = getCanvas();
 const ctx = getContext();
@@ -207,10 +210,39 @@ mapSearchInput.addEventListener('input', (e) => {
     loadCustomMapsIntoModal(e.target.value);
 });
 
+// Function to stop the game loop and clean up resources
+function stopGameLoop() {
+    if (gameLoopId) {
+        cancelAnimationFrame(gameLoopId);
+        gameLoopId = null;
+        gameState.lastTime = 0;
+    }
+}
+
 // Menu functions
 function showMenu() {
     document.getElementById('main-menu').style.display = 'flex';
     document.getElementById('game-container').style.display = 'none';
+    
+    // Stop the game loop and clean up
+    stopGameLoop();
+    
+    // Reset game state
+    gameState.wave = 0;
+    gameState.enemies = [];
+    gameState.towers = [];
+    gameState.projectiles = [];
+    gameState.particles = [];
+    gameState.floatingTexts = [];
+    gameState.selectedTowerType = null;
+    gameState.placingTower = false;
+    gameState.state = 'waiting';
+    gameState.currentWaveConfig = null;
+    gameState.enemyQueue = [];
+    gameState.bossPending = false;
+    gameState.bossConfig = null;
+    gameState.enemiesToSpawn = 0;
+    gameState.spawnCounter = 0;
     
     // Ensure menu canvas is properly sized
     const menuCanvas = getMenuCanvas();
@@ -229,10 +261,9 @@ function startGame(mapType) {
     initGame(mapType);
     
     // Start game loop if it's not already running
-    if (!gameState.lastTime) {
-        gameState.lastTime = performance.now();
-        requestAnimationFrame(gameLoop);
-    }
+    stopGameLoop(); // Ensure any existing loop is stopped first
+    gameState.lastTime = performance.now();
+    gameLoopId = requestAnimationFrame(gameLoop);
 }
 
 // Vytvoření animovaných částic pro menu
@@ -305,7 +336,7 @@ function gameLoop(timestamp) {
 
     // Skip update/draw if deltaTime is excessive (e.g., tab was inactive)
     if (deltaTime <= 0 || deltaTime > 200) {
-        requestAnimationFrame(gameLoop);
+        gameLoopId = requestAnimationFrame(gameLoop);
         return;
     }
 
@@ -329,7 +360,7 @@ function gameLoop(timestamp) {
     );
 
     // Continue the game loop
-    requestAnimationFrame(gameLoop);
+    gameLoopId = requestAnimationFrame(gameLoop);
 }
 
 // Event Handlers
@@ -614,6 +645,9 @@ function initEventListeners() {
         button.addEventListener('click', () => {
             document.getElementById('game-over-screen').style.display = 'none';
             document.getElementById('victory-screen').style.display = 'none';
+            
+            // Stop the game loop and clean up
+            stopGameLoop();
             
             // Vrácení na výběr map
             document.getElementById('game-view').style.display = 'none';
@@ -984,8 +1018,7 @@ function initGameWithCustomMap(map) {
     updateUI();
     
     // Start game loop if not already running
-    if (!gameState.lastTime) {
-        gameState.lastTime = performance.now();
-        requestAnimationFrame(gameLoop);
-    }
+    stopGameLoop(); // Ensure any existing loop is stopped first
+    gameState.lastTime = performance.now();
+    gameLoopId = requestAnimationFrame(gameLoop);
 } 
