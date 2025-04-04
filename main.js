@@ -124,7 +124,7 @@ function hideCustomMapsModal() {
 }
 
 // Load custom maps into the modal - updated to use Supabase
-async function loadCustomMapsIntoModal(searchTerm = '', sortBy = 'created_at', ascending = false) {
+async function loadCustomMapsIntoModal(searchTerm = '', sortBy = 'created_at', ascending = false, myMapsOnly = false) {
     try {
         // Fetch maps from Supabase
         let maps = await fetchMaps(sortBy, ascending);
@@ -141,11 +141,17 @@ async function loadCustomMapsIntoModal(searchTerm = '', sortBy = 'created_at', a
             );
         }
         
+        // Filter maps by current user if "My Maps Only" is checked
+        if (myMapsOnly) {
+            const currentUser = getUserNickname();
+            maps = maps.filter(map => map.author === currentUser);
+        }
+        
         // Show appropriate messages if no maps or no search results
-        if (maps.length === 0 && !searchTerm) {
+        if (maps.length === 0 && !searchTerm && !myMapsOnly) {
             noMapsMessage.style.display = 'block';
             noSearchResultsMessage.style.display = 'none';
-        } else if (maps.length === 0 && searchTerm) {
+        } else if (maps.length === 0 && (searchTerm || myMapsOnly)) {
             noMapsMessage.style.display = 'none';
             noSearchResultsMessage.style.display = 'block';
         } else {
@@ -275,10 +281,11 @@ async function loadCustomMapsIntoModal(searchTerm = '', sortBy = 'created_at', a
                             // Update main menu button visibility
                             loadCustomMaps();
                             // Reload maps in modal with current search term
-                            loadCustomMapsIntoModal(searchTerm, sortBy, ascending);
+                            loadCustomMapsIntoModal(searchTerm, sortBy, ascending, myMapsOnly);
+                            showToast(`Map "${map.name}" deleted successfully!`, 'success');
                         } catch (error) {
                             console.error('Error deleting map:', error);
-                            alert('Error deleting map. Please try again.');
+                            showToast('Error deleting map. Please try again.', 'error');
                         }
                     }
                 });
@@ -360,9 +367,10 @@ async function rateMapHandler(mapId, rating) {
         const ascending = sortDirectionBtn ? sortDirectionBtn.classList.contains('asc') : false;
         
         await loadCustomMapsIntoModal(searchTerm, sortBy, ascending);
+        showToast('Rating submitted. Thank you for your feedback!', 'success');
     } catch (error) {
         console.error('Error rating map:', error);
-        alert('Error rating map. Please try again.');
+        showToast('Error rating map. Please try again.', 'error');
     }
 }
 
@@ -373,7 +381,7 @@ async function editCustomMap(mapId) {
         const map = await getMapById(mapId);
         
         if (!map) {
-            alert('Map not found!');
+            showToast('Map not found!', 'error');
             return;
         }
         
@@ -381,7 +389,7 @@ async function editCustomMap(mapId) {
         initEditor(map.name, map.map_data);
     } catch (error) {
         console.error('Error editing map:', error);
-        alert('Error loading map for editing. Please try again.');
+        showToast('Error loading map for editing. Please try again.', 'error');
     }
 }
 
@@ -392,7 +400,7 @@ async function startGameWithCustomMap(mapId) {
         const map = await getMapById(mapId);
         
         if (!map) {
-            alert('Map not found!');
+            showToast('Map not found!', 'error');
             return;
         }
         
@@ -404,7 +412,7 @@ async function startGameWithCustomMap(mapId) {
         initGameWithCustomMap(map.map_data);
     } catch (error) {
         console.error('Error starting game with custom map:', error);
-        alert('Error loading map. Please try again.');
+        showToast('Error loading map. Please try again.', 'error');
     }
 }
 
@@ -468,12 +476,12 @@ async function saveCurrentMap() {
     const mapName = mapNameInput.value.trim();
     
     if (!mapName) {
-        alert('Please enter a map name');
+        showToast('Please enter a map name', 'error');
         return;
     }
     
     if (!validatePath()) {
-        alert('Map is not valid. ' + editorState.validationMessage);
+        showToast('Map is not valid. ' + editorState.validationMessage, 'error');
         return;
     }
     
@@ -505,6 +513,38 @@ async function saveCurrentMap() {
     
     // If we already have a nickname, save directly
     completeMapSave(mapName);
+}
+
+// Function to show toast notification
+function showToast(message, type = 'info') {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    // Create message element
+    const messageEl = document.createElement('div');
+    messageEl.className = 'toast-message';
+    messageEl.textContent = message;
+    toast.appendChild(messageEl);
+    
+    // Create close button
+    const closeBtn = document.createElement('i');
+    closeBtn.className = 'fas fa-times toast-close';
+    closeBtn.addEventListener('click', () => {
+        toast.remove();
+    });
+    toast.appendChild(closeBtn);
+    
+    // Add toast to container
+    const container = document.getElementById('toast-container');
+    container.appendChild(toast);
+    
+    // Remove toast after animation completes
+    setTimeout(() => {
+        if (document.body.contains(toast)) {
+            toast.remove();
+        }
+    }, 4300);
 }
 
 // Helper function to complete map saving
@@ -568,9 +608,9 @@ async function completeMapSave(mapName) {
         
         // Show different message based on whether we're creating or updating
         if (isEditing) {
-            alert(`Map "${mapName}" updated successfully!`);
+            showToast(`Map "${mapName}" updated successfully!`, 'success');
         } else {
-            alert(`Map "${mapName}" saved successfully!`);
+            showToast(`Map "${mapName}" saved successfully!`, 'success');
         }
         
         // Reload custom maps in menu
@@ -580,7 +620,7 @@ async function completeMapSave(mapName) {
         exitEditor();
     } catch (error) {
         console.error('Error saving map to Supabase:', error);
-        alert('Error saving map to the database. Please try again later.');
+        showToast('Error saving map to the database. Please try again later.', 'error');
     }
 }
 
@@ -1392,7 +1432,13 @@ createMapModalButton.addEventListener('click', () => {
 
 // Search functionality
 mapSearchInput.addEventListener('input', (e) => {
-    loadCustomMapsIntoModal(e.target.value);
+    const myMapsOnly = document.getElementById('my-maps-only').checked;
+    const sortSelect = document.getElementById('sort-maps');
+    const sortBy = sortSelect ? sortSelect.value : 'created_at';
+    const sortDirectionBtn = document.getElementById('sort-direction');
+    const ascending = sortDirectionBtn ? sortDirectionBtn.classList.contains('asc') : false;
+    
+    loadCustomMapsIntoModal(e.target.value, sortBy, ascending, myMapsOnly);
 });
 
 // Function to stop the game loop and clean up resources
@@ -1464,13 +1510,15 @@ function initNicknameModalListeners() {
 function initSortingListeners() {
     const sortSelect = document.getElementById('sort-maps');
     const sortDirectionBtn = document.getElementById('sort-direction');
+    const myMapsOnlyCheckbox = document.getElementById('my-maps-only');
     
     if (sortSelect) {
         sortSelect.addEventListener('change', () => {
             const searchTerm = document.getElementById('map-search').value;
             const sortBy = sortSelect.value;
             const ascending = sortDirectionBtn ? sortDirectionBtn.classList.contains('asc') : false;
-            loadCustomMapsIntoModal(searchTerm, sortBy, ascending);
+            const myMapsOnly = myMapsOnlyCheckbox ? myMapsOnlyCheckbox.checked : false;
+            loadCustomMapsIntoModal(searchTerm, sortBy, ascending, myMapsOnly);
         });
     }
     
@@ -1488,7 +1536,18 @@ function initSortingListeners() {
             const searchTerm = document.getElementById('map-search').value;
             const sortBy = sortSelect ? sortSelect.value : 'created_at';
             const ascending = sortDirectionBtn.classList.contains('asc');
-            loadCustomMapsIntoModal(searchTerm, sortBy, ascending);
+            const myMapsOnly = myMapsOnlyCheckbox ? myMapsOnlyCheckbox.checked : false;
+            loadCustomMapsIntoModal(searchTerm, sortBy, ascending, myMapsOnly);
+        });
+    }
+    
+    // Add event listener for My Maps Only checkbox
+    if (myMapsOnlyCheckbox) {
+        myMapsOnlyCheckbox.addEventListener('change', () => {
+            const searchTerm = document.getElementById('map-search').value;
+            const sortBy = sortSelect ? sortSelect.value : 'created_at';
+            const ascending = sortDirectionBtn ? sortDirectionBtn.classList.contains('asc') : false;
+            loadCustomMapsIntoModal(searchTerm, sortBy, ascending, myMapsOnlyCheckbox.checked);
         });
     }
 }

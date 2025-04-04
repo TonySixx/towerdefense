@@ -1724,12 +1724,16 @@ kbd {
     margin-bottom: 20px;
     width: 100%;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    
 }
 
 .map-search-input {
+    flex: 1 0 0;
     padding: 12px 15px;
-    width: 80%;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
@@ -1754,7 +1758,7 @@ kbd {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    max-height: 400px;
+    max-height: 380px;
     overflow-y: auto;
     padding-right: 5px;
 }
@@ -2412,13 +2416,13 @@ input:checked + .slider:before {
 .maps-sort-controls {
     display: flex;
     align-items: center;
-    margin-bottom: 15px;
-    padding: 0 20px;
+    white-space: nowrap;
 }
 
 .maps-sort-controls label {
-    margin-right: 10px;
+    margin-right: 5px;
     color: #aaa;
+    font-size: 0.9em;
 }
 
 #sort-maps {
@@ -2427,6 +2431,7 @@ input:checked + .slider:before {
     color: #fff;
     border: 1px solid #444;
     border-radius: 4px;
+    font-size: 0.9em;
 }
 
 .sort-btn {
@@ -2469,4 +2474,98 @@ input:checked + .slider:before {
     font-size: 0.7rem;
     color: #888;
     margin-left: 5px;
+}
+
+/* My Maps Filter */
+.my-maps-filter {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    margin-left: 5px;
+}
+
+.my-maps-filter label {
+    margin-left: 5px;
+    color: #aaa;
+    font-size: 0.9em;
+}
+
+#my-maps-only {
+    cursor: pointer;
+}
+
+/* Toast Notifications */
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.toast {
+    background-color: rgba(42, 45, 52, 0.9);
+    color: #f2e9e4;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-top: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    font-size: 1rem;
+    max-width: 300px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: toast-in 0.3s ease forwards, toast-out 0.3s ease forwards 4s;
+    border-left: 4px solid;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.toast.success {
+    border-left-color: #4CAF50;
+}
+
+.toast.error {
+    border-left-color: #F44336;
+}
+
+.toast.info {
+    border-left-color: #2196F3;
+}
+
+.toast-message {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.toast-close {
+    font-size: 16px;
+    opacity: 0.7;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.toast-close:hover {
+    opacity: 1;
+}
+
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes toast-out {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
 }

@@ -221,22 +221,24 @@
                 <span class="close-modal custom-maps-close">&times;</span>
             </div>
             
-            <!-- Add sorting controls here -->
-            <div class="maps-sort-controls">
-                <label for="sort-maps">Sort by:</label>
-                <select id="sort-maps">
-                    <option value="created_at">Newest</option>
-                    <option value="average_rating">Rating</option>
-                    <option value="name">Name</option>
-                </select>
-                <button id="sort-direction" class="sort-btn" title="Toggle sort direction">
-                    <i class="fas fa-sort-down"></i>
-                </button>
-            </div>
-            
             <div class="modal-body">
                 <div class="search-container">
                     <input type="text" id="map-search" placeholder="Search maps..." class="map-search-input">
+                    <div class="maps-sort-controls">
+                        <label for="sort-maps">Sort:</label>
+                        <select id="sort-maps">
+                            <option value="created_at">Newest</option>
+                            <option value="average_rating">Rating</option>
+                            <option value="name">Name</option>
+                        </select>
+                        <button id="sort-direction" class="sort-btn" title="Toggle sort direction">
+                            <i class="fas fa-sort-down"></i>
+                        </button>
+                    </div>
+                    <div class="my-maps-filter">
+                        <input type="checkbox" id="my-maps-only">
+                        <label for="my-maps-only">My Maps Only</label>
+                    </div>
                 </div>
                 <div id="custom-maps-list" class="custom-maps-list">
                     <!-- Custom maps will be added here dynamically -->
@@ -531,5 +533,8 @@
     </div>
 
     <script src="main.js" type="module"></script>
+    
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
 </body>
 </html>
