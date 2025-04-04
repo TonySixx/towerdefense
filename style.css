@@ -2453,9 +2453,23 @@ input:checked + .slider:before {
 }
 
 .map-author {
-    font-size: 0.8rem;
-    color: #888;
-    margin-top: 2px;
+    font-size: 0.85rem;
+    color: #9a8c98;
+    margin-bottom: 2px;
+}
+
+.map-play-count {
+    font-size: 0.85rem;
+    color: #9a8c98;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.map-play-count i {
+    font-size: 0.85rem;
+    color: #4caf50;
 }
 
 /* Add user rating indicator */

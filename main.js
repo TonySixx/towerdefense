@@ -35,7 +35,8 @@ import {
     deleteMapFromSupabase,
     getMapById,
     rateMap,
-    getUserMapRating
+    getUserMapRating,
+    incrementPlayCount
 } from './supabaseClient.js';
 
 // Track game loop animation frame
@@ -184,9 +185,15 @@ async function loadCustomMapsIntoModal(searchTerm = '', sortBy = 'created_at', a
             const difficultyText = getMapDifficultyText(map.map_data);
             mapDescription.textContent = difficultyText;
             
+            // Create play count element
+            const playCount = document.createElement('div');
+            playCount.className = 'map-play-count';
+            playCount.innerHTML = `<i class="fas fa-play"></i> ${map.play_count || 0} plays`;
+            
             mapInfo.appendChild(mapNameElem);
             mapInfo.appendChild(mapAuthor);
             mapInfo.appendChild(mapDescription);
+            mapInfo.appendChild(playCount);
             
             // Create rating container
             const ratingContainer = document.createElement('div');
@@ -402,6 +409,18 @@ async function startGameWithCustomMap(mapId) {
         if (!map) {
             showToast('Map not found!', 'error');
             return;
+        }
+        
+        // Increment play count with proper error handling
+        try {
+            const playCountIncremented = await incrementPlayCount(mapId);
+            if (!playCountIncremented) {
+                console.error('Failed to increment play count for map:', mapId);
+            } else {
+                console.log('Successfully incremented play count for map:', mapId);
+            }
+        } catch (incrementError) {
+            console.error('Error during play count increment:', incrementError);
         }
         
         // Hide main menu

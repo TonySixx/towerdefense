@@ -216,4 +216,64 @@ export async function getUserMapRating(mapId) {
         console.error('Error in getUserMapRating:', error);
         return 0;
     }
-} 
+}
+
+// Increment play count for a map
+export async function incrementPlayCount(mapId) {
+    try {
+        console.log('Incrementing play count for map:', mapId);
+        
+        const client = await initSupabase();
+        if (!client) {
+            console.error('Failed to initialize Supabase client');
+            return false;
+        }
+        
+        // Set auth header
+        setAuthHeader(client);
+        const nickname = getUserNickname();
+        console.log('Auth header set with nickname:', nickname);
+        
+        // Get current play count
+        console.log('Fetching current play count...');
+        const { data: mapData, error: fetchError } = await client
+            .from('maps')
+            .select('play_count, author')
+            .eq('id', mapId)
+            .single();
+        
+        if (fetchError) {
+            console.error('Error fetching map play count:', fetchError);
+            return false;
+        }
+        
+        console.log('Current map data:', mapData);
+        
+        // Increment play count
+        const currentCount = mapData?.play_count || 0;
+        const newCount = currentCount + 1;
+        console.log(`Incrementing play count from ${currentCount} to ${newCount}`);
+        
+        // Check if user is the author of the map (for debugging RLS issues)
+        const isAuthor = mapData.author === nickname;
+        console.log(`User is${isAuthor ? '' : ' not'} the author of this map`);
+        
+        const { data: updateData, error: updateError } = await client
+            .from('maps')
+            .update({ play_count: newCount })
+            .eq('id', mapId)
+            .select();
+        
+        if (updateError) {
+            console.error('Error updating map play count:', updateError);
+            return false;
+        }
+        
+        console.log('Play count updated successfully:', updateData);
+        return true;
+    } catch (error) {
+        console.error('Error in incrementPlayCount:', error);
+        return false;
+    }
+}
+
