@@ -1755,9 +1755,9 @@ kbd {
 
 /* Custom Maps List */
 .custom-maps-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
     max-height: 380px;
     overflow-y: auto;
     padding-right: 5px;
@@ -1765,14 +1765,15 @@ kbd {
 
 .custom-map-item {
     background: rgba(41, 41, 61, 0.7);
-    border-radius: 10px;
-    padding: 15px;
+    border-radius: 8px;
+    padding: 10px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     transition: all 0.3s ease;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    height: 140px;
+    position: relative;
 }
 
 .custom-map-item:hover {
@@ -1783,32 +1784,53 @@ kbd {
 }
 
 .custom-map-info {
+    display: flex;
+    flex-direction: column;
     flex-grow: 1;
+    overflow: hidden;
     cursor: pointer;
 }
 
 .custom-map-name {
-    font-size: 1.3em;
-    color: #ffffff;
-    margin: 0 0 5px 0;
+    font-size: 1.1em;
+    font-weight: bold;
+    margin: 0 0 3px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.map-author {
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0 0 2px 0;
 }
 
 .custom-map-description {
     color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9em;
+    font-size: 0.8em;
+    margin: 0 0 2px 0;
+}
+
+.map-play-count {
+    font-size: 0.75em;
+    color: rgba(255, 255, 255, 0.6);
 }
 
 .custom-map-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
     display: flex;
-    gap: 10px;
+    gap: 5px;
 }
 
 .map-action-btn {
     background: rgba(255, 255, 255, 0.1);
     border: none;
     border-radius: 5px;
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2370,13 +2392,15 @@ input:checked + .slider:before {
 
 /* Rating Stars */
 .rating-container {
-    margin-top: 8px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 3px;
 }
 
 .rating-stars {
+    font-size: 0.9em;
     display: flex;
 }
 
@@ -2397,7 +2421,7 @@ input:checked + .slider:before {
 }
 
 .rating-info {
-    font-size: 0.8rem;
+    font-size: 0.75em;
     color: #aaa;
     margin-left: 10px;
     display: flex;
