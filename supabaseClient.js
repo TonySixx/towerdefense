@@ -85,15 +85,15 @@ export async function getMapById(id) {
         const { data, error } = await client
             .from('maps')
             .select('*')
-            .eq('id', id)
-            .single();
+            .eq('id', id);
         
         if (error) {
             console.error('Error fetching map by ID:', error);
             return null;
         }
         
-        return data;
+        // Return the first map if found, otherwise null
+        return data && data.length > 0 ? data[0] : null;
     } catch (error) {
         console.error('Error in getMapById:', error);
         return null;
@@ -203,14 +203,15 @@ export async function getUserMapRating(mapId) {
             .from('ratings')
             .select('rating')
             .eq('map_id', mapId)
-            .eq('user_nickname', nickname)
-            .single();
+            .eq('user_nickname', nickname);
         
-        if (error && error.code !== 'PGRST116') { // PGRST116 means no rows returned
+        if (error) {
             console.error('Error fetching user rating:', error);
+            return 0;
         }
         
-        return data?.rating || 0;
+        // Return the first rating if found, otherwise 0
+        return data && data.length > 0 ? data[0].rating : 0;
     } catch (error) {
         console.error('Error in getUserMapRating:', error);
         return 0;

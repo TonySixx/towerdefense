@@ -105,7 +105,7 @@ BEGIN
     
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Trigger to update map rating when a rating is inserted or updated
 CREATE TRIGGER update_map_rating_on_insert_or_update
@@ -133,7 +133,7 @@ BEGIN
     
     RETURN OLD;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Trigger to update map rating when a rating is deleted
 CREATE TRIGGER update_map_rating_on_delete
