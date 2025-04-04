@@ -2494,6 +2494,48 @@ input:checked + .slider:before {
     cursor: pointer;
 }
 
+/* Primary Button Style */
+.primary-btn {
+    padding: 10px 20px;
+    font-size: 1.1em;
+    font-weight: bold;
+    background: linear-gradient(to bottom, #4CAF50, #388E3C);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: primary-btn-pulse 2s infinite;
+}
+
+.primary-btn:hover {
+    background: linear-gradient(to bottom, #66BB6A, #4CAF50);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.primary-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.primary-btn i {
+    margin-right: 8px;
+    font-size: 1.1em;
+}
+
+/* Pulzující efekt pro tlačítko primary-btn */
+@keyframes primary-btn-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+}
+
 /* Toast Notifications */
 #toast-container {
     position: fixed;
