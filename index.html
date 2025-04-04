@@ -6,6 +6,7 @@
     <title>Just Another TD</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div id="main-menu">
@@ -219,6 +220,20 @@
                 <h2>Custom Maps</h2>
                 <span class="close-modal custom-maps-close">&times;</span>
             </div>
+            
+            <!-- Add sorting controls here -->
+            <div class="maps-sort-controls">
+                <label for="sort-maps">Sort by:</label>
+                <select id="sort-maps">
+                    <option value="created_at">Newest</option>
+                    <option value="average_rating">Rating</option>
+                    <option value="name">Name</option>
+                </select>
+                <button id="sort-direction" class="sort-btn" title="Toggle sort direction">
+                    <i class="fas fa-sort-down"></i>
+                </button>
+            </div>
+            
             <div class="modal-body">
                 <div class="search-container">
                     <input type="text" id="map-search" placeholder="Search maps..." class="map-search-input">
@@ -493,6 +508,24 @@
                 <div class="editor-instructions">
                     <p>Click and drag to draw path. Set start and end points. Path must be continuous.</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nickname Modal -->
+    <div id="nickname-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Welcome to Tower Defense!</h2>
+                <span class="nickname-close close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Please enter a nickname to use for sharing and rating maps:</p>
+                <div class="form-group">
+                    <input type="text" id="nickname-input" placeholder="Enter your nickname" maxlength="20">
+                    <div id="nickname-error" class="error-message"></div>
+                </div>
+                <button id="save-nickname-btn" class="primary-btn">Start Playing</button>
             </div>
         </div>
     </div>

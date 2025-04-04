@@ -25,6 +25,19 @@ import {
     updateValidationMessage
 } from './mapEditor.js';
 
+// Import Supabase functions
+import {
+    hasUserNickname,
+    setUserNickname,
+    getUserNickname,
+    fetchMaps,
+    saveMapToSupabase,
+    deleteMapFromSupabase,
+    getMapById,
+    rateMap,
+    getUserMapRating
+} from './supabaseClient.js';
+
 // Track game loop animation frame
 let gameLoopId = null;
 
@@ -110,252 +123,485 @@ function hideCustomMapsModal() {
     }, 300); // Match animation duration
 }
 
-// Load custom maps into the modal
-function loadCustomMapsIntoModal(searchTerm = '') {
-    const customMaps = getCustomMaps();
-    const mapsList = document.getElementById('custom-maps-list');
-    
-    // Clear existing custom maps
-    mapsList.innerHTML = '';
-    
-    // Filter custom maps based on search term if provided
-    const filteredMaps = searchTerm 
-        ? Object.entries(customMaps).filter(([name]) => 
-            name.toLowerCase().includes(searchTerm.toLowerCase()))
-        : Object.entries(customMaps);
-    
-    // Show appropriate messages if no maps or no search results
-    if (Object.keys(customMaps).length === 0) {
+// Load custom maps into the modal - updated to use Supabase
+async function loadCustomMapsIntoModal(searchTerm = '', sortBy = 'created_at', ascending = false) {
+    try {
+        // Fetch maps from Supabase
+        let maps = await fetchMaps(sortBy, ascending);
+        const mapsList = document.getElementById('custom-maps-list');
+        
+        // Clear existing custom maps
+        mapsList.innerHTML = '';
+        
+        // Filter maps based on search term if provided
+        if (searchTerm) {
+            maps = maps.filter(map => 
+                map.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                map.author.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+        
+        // Show appropriate messages if no maps or no search results
+        if (maps.length === 0 && !searchTerm) {
+            noMapsMessage.style.display = 'block';
+            noSearchResultsMessage.style.display = 'none';
+        } else if (maps.length === 0 && searchTerm) {
+            noMapsMessage.style.display = 'none';
+            noSearchResultsMessage.style.display = 'block';
+        } else {
+            noMapsMessage.style.display = 'none';
+            noSearchResultsMessage.style.display = 'none';
+        }
+        
+        // Add maps to the modal
+        for (const map of maps) {
+            const mapItem = document.createElement('div');
+            mapItem.className = 'custom-map-item';
+            
+            const mapInfo = document.createElement('div');
+            mapInfo.className = 'custom-map-info';
+            mapInfo.addEventListener('click', () => {
+                startGameWithCustomMap(map.id);
+                hideCustomMapsModal();
+            });
+            
+            const mapNameElem = document.createElement('div');
+            mapNameElem.className = 'custom-map-name';
+            mapNameElem.textContent = map.name;
+            
+            const mapAuthor = document.createElement('div');
+            mapAuthor.className = 'map-author';
+            mapAuthor.textContent = `by ${map.author}`;
+            
+            const mapDescription = document.createElement('div');
+            mapDescription.className = 'custom-map-description';
+            const difficultyText = getMapDifficultyText(map.map_data);
+            mapDescription.textContent = difficultyText;
+            
+            mapInfo.appendChild(mapNameElem);
+            mapInfo.appendChild(mapAuthor);
+            mapInfo.appendChild(mapDescription);
+            
+            // Create rating container
+            const ratingContainer = document.createElement('div');
+            ratingContainer.className = 'rating-container';
+            
+            // Add rating stars
+            const ratingStars = document.createElement('div');
+            ratingStars.className = 'rating-stars';
+            ratingStars.dataset.mapId = map.id;
+            
+            // Create 5 stars
+            for (let i = 1; i <= 5; i++) {
+                const star = document.createElement('span');
+                star.className = 'star';
+                star.dataset.rating = i;
+                star.textContent = '★';
+                star.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    rateMapHandler(map.id, i);
+                });
+                ratingStars.appendChild(star);
+            }
+            
+            // Add rating info
+            const ratingInfo = document.createElement('div');
+            ratingInfo.className = 'rating-info';
+            
+            const avgRating = document.createElement('span');
+            avgRating.className = 'avg-rating';
+            avgRating.textContent = map.average_rating ? map.average_rating.toFixed(1) : '0.0';
+            
+            const ratingCount = document.createElement('span');
+            ratingCount.className = 'rating-count';
+            ratingCount.textContent = `(${map.rating_count || 0})`;
+            
+            ratingInfo.appendChild(avgRating);
+            ratingInfo.appendChild(ratingCount);
+            
+            ratingContainer.appendChild(ratingStars);
+            ratingContainer.appendChild(ratingInfo);
+            
+            mapInfo.appendChild(ratingContainer);
+            
+            // Check if the current user is the author of the map
+            const currentUser = getUserNickname();
+            const isAuthor = map.author === currentUser;
+
+            // Disable rating if user is the author
+            if (isAuthor) {
+                // Disable rating stars and add a message
+                ratingStars.classList.add('disabled');
+                // Add a note indicating they can't rate their own map
+                const authorNote = document.createElement('span');
+                authorNote.className = 'author-note';
+                authorNote.textContent = '(Can\'t rate your own map)';
+                ratingInfo.appendChild(authorNote);
+                
+                // Remove click event listeners from stars
+                ratingStars.querySelectorAll('.star').forEach(star => {
+                    const oldStar = star.cloneNode(true);
+                    star.parentNode.replaceChild(oldStar, star);
+                    oldStar.style.cursor = 'default';
+                });
+            }
+            
+            const mapActions = document.createElement('div');
+            mapActions.className = 'custom-map-actions';
+            
+            // Edit button - only show for maps the user created
+            if (isAuthor) {
+                const editBtn = document.createElement('button');
+                editBtn.className = 'map-action-btn map-edit-btn';
+                editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+                editBtn.title = "Edit map";
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    editCustomMap(map.id);
+                    hideCustomMapsModal();
+                });
+                mapActions.appendChild(editBtn);
+                
+                // Delete button
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'map-action-btn map-delete-btn';
+                deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                deleteBtn.title = "Delete map";
+                deleteBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    if (confirm(`Are you sure you want to delete the map "${map.name}"?`)) {
+                        try {
+                            await deleteMapFromSupabase(map.id);
+                            // Update main menu button visibility
+                            loadCustomMaps();
+                            // Reload maps in modal with current search term
+                            loadCustomMapsIntoModal(searchTerm, sortBy, ascending);
+                        } catch (error) {
+                            console.error('Error deleting map:', error);
+                            alert('Error deleting map. Please try again.');
+                        }
+                    }
+                });
+                mapActions.appendChild(deleteBtn);
+            }
+            
+            mapItem.appendChild(mapInfo);
+            mapItem.appendChild(mapActions);
+            
+            mapsList.appendChild(mapItem);
+            
+            // Check if user has rated this map and highlight stars
+            highlightUserRating(map.id, ratingStars);
+        }
+    } catch (error) {
+        console.error('Error loading maps into modal:', error);
         noMapsMessage.style.display = 'block';
         noSearchResultsMessage.style.display = 'none';
-    } else if (filteredMaps.length === 0 && searchTerm) {
-        noMapsMessage.style.display = 'none';
-        noSearchResultsMessage.style.display = 'block';
-    } else {
-        noMapsMessage.style.display = 'none';
-        noSearchResultsMessage.style.display = 'none';
-    }
-    
-    // Add filtered custom maps to the modal
-    for (const [mapName, map] of filteredMaps) {
-        const mapItem = document.createElement('div');
-        mapItem.className = 'custom-map-item';
-        
-        const mapInfo = document.createElement('div');
-        mapInfo.className = 'custom-map-info';
-        mapInfo.addEventListener('click', () => {
-            startGameWithCustomMap(mapName);
-            hideCustomMapsModal();
-        });
-        
-        const mapNameElem = document.createElement('div');
-        mapNameElem.className = 'custom-map-name';
-        mapNameElem.textContent = mapName;
-        
-        const mapDescription = document.createElement('div');
-        mapDescription.className = 'custom-map-description';
-        mapDescription.textContent = 'Custom Map';
-        
-        mapInfo.appendChild(mapNameElem);
-        mapInfo.appendChild(mapDescription);
-        
-        const mapActions = document.createElement('div');
-        mapActions.className = 'custom-map-actions';
-        
-        // Edit button
-        const editBtn = document.createElement('button');
-        editBtn.className = 'map-action-btn map-edit-btn';
-        editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-        editBtn.title = "Edit map";
-        editBtn.addEventListener('click', (e) => {
-            editCustomMap(mapName);
-            hideCustomMapsModal();
-        });
-        
-        // Delete button
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'map-action-btn map-delete-btn';
-        deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
-        deleteBtn.title = "Delete map";
-        deleteBtn.addEventListener('click', (e) => {
-            if (confirm(`Are you sure you want to delete the map "${mapName}"?`)) {
-                deleteMap(mapName);
-                // Update main menu button visibility
-                loadCustomMaps();
-                // Reload maps in modal with current search term
-                loadCustomMapsIntoModal(searchTerm);
-            }
-        });
-        
-        mapActions.appendChild(editBtn);
-        mapActions.appendChild(deleteBtn);
-        
-        mapItem.appendChild(mapInfo);
-        mapItem.appendChild(mapActions);
-        
-        mapsList.appendChild(mapItem);
     }
 }
 
-// Show settings modal
-function showSettings() {
-    settingsModal.style.display = 'flex';
-    // Add slight animation delay to make sure flex layout is applied first
+// Function to determine map difficulty text
+function getMapDifficultyText(mapData) {
+    if (!mapData) return 'Custom';
+    
+    if (mapData.startMoney === 150 && mapData.startHealth === 25 && 
+        mapData.enemyHealthModifier === 0.8 && mapData.waveModifier === 0.9) {
+        return 'Easy';
+    } else if (mapData.startMoney === 90 && mapData.startHealth === 15 && 
+            mapData.enemyHealthModifier === 1.2 && mapData.waveModifier === 1.1) {
+        return 'Hard';
+    } else if (mapData.startMoney === 100 && mapData.startHealth === 20 && 
+            mapData.enemyHealthModifier === 1.0 && mapData.waveModifier === 1.0) {
+        return 'Medium';
+    } else {
+        return 'Custom';
+    }
+}
+
+// Function to highlight user's rating
+async function highlightUserRating(mapId, ratingStarsContainer) {
+    try {
+        const userRating = await getUserMapRating(mapId);
+        if (userRating > 0) {
+            const stars = ratingStarsContainer.querySelectorAll('.star');
+            stars.forEach(star => {
+                const rating = parseInt(star.dataset.rating);
+                if (rating <= userRating) {
+                    star.classList.add('active');
+                }
+            });
+            
+            // Add "Your rating" indicator
+            const userRatedIndicator = document.createElement('span');
+            userRatedIndicator.className = 'user-rated';
+            userRatedIndicator.textContent = '(Your rating)';
+            ratingStarsContainer.appendChild(userRatedIndicator);
+        }
+    } catch (error) {
+        console.error('Error highlighting user rating:', error);
+    }
+}
+
+// Handler for rating a map
+async function rateMapHandler(mapId, rating) {
+    try {
+        // Check if user has a nickname
+        if (!hasUserNickname()) {
+            showNicknameModal();
+            return;
+        }
+        
+        await rateMap(mapId, rating);
+        // Reload the maps to get updated ratings
+        const searchTerm = document.getElementById('map-search').value;
+        const sortSelect = document.getElementById('sort-maps');
+        const sortBy = sortSelect ? sortSelect.value : 'created_at';
+        const sortDirectionBtn = document.getElementById('sort-direction');
+        const ascending = sortDirectionBtn ? sortDirectionBtn.classList.contains('asc') : false;
+        
+        await loadCustomMapsIntoModal(searchTerm, sortBy, ascending);
+    } catch (error) {
+        console.error('Error rating map:', error);
+        alert('Error rating map. Please try again.');
+    }
+}
+
+// Update the editCustomMap function
+async function editCustomMap(mapId) {
+    try {
+        // Fetch map from Supabase by ID
+        const map = await getMapById(mapId);
+        
+        if (!map) {
+            alert('Map not found!');
+            return;
+        }
+        
+        // Load map into editor
+        initEditor(map.name, map.map_data);
+    } catch (error) {
+        console.error('Error editing map:', error);
+        alert('Error loading map for editing. Please try again.');
+    }
+}
+
+// Update the startGameWithCustomMap function
+async function startGameWithCustomMap(mapId) {
+    try {
+        // Fetch map from Supabase by ID
+        const map = await getMapById(mapId);
+        
+        if (!map) {
+            alert('Map not found!');
+            return;
+        }
+        
+        // Hide main menu
+        document.getElementById('main-menu').style.display = 'none';
+        document.getElementById('game-container').style.display = 'flex';
+        
+        // Initialize game with custom map
+        initGameWithCustomMap(map.map_data);
+    } catch (error) {
+        console.error('Error starting game with custom map:', error);
+        alert('Error loading map. Please try again.');
+    }
+}
+
+// Show nickname modal
+function showNicknameModal() {
+    const nicknameModal = document.getElementById('nickname-modal');
+    nicknameModal.style.display = 'flex';
     setTimeout(() => {
-        settingsModal.style.opacity = '1';
+        nicknameModal.style.opacity = '1';
     }, 10);
     
-    // Update checkboxes to match current settings
-    toggleParticles.checked = gameState.showParticles;
-    toggleFloatingTexts.checked = gameState.showFloatingTexts;
-    
-    // Update particle intensity slider
-    particleIntensitySlider.value = Math.round(gameState.particleIntensity * 100);
-    particleIntensityValue.textContent = Math.round(gameState.particleIntensity * 100) + '%';
-    particleIntensitySlider.disabled = !gameState.showParticles;
-    particleIntensityValue.style.opacity = gameState.showParticles ? '1' : '0.5';
-    
-    // Update floating text intensity slider
-    floatingTextIntensitySlider.value = Math.round(gameState.floatingTextIntensity * 100);
-    floatingTextIntensityValue.textContent = Math.round(gameState.floatingTextIntensity * 100) + '%';
-    floatingTextIntensitySlider.disabled = !gameState.showFloatingTexts;
-    floatingTextIntensityValue.style.opacity = gameState.showFloatingTexts ? '1' : '0.5';
+    // Focus on input
+    document.getElementById('nickname-input').focus();
 }
 
-// Hide settings modal
-function hideSettings() {
-    settingsModal.style.opacity = '0';
+// Hide nickname modal
+function hideNicknameModal() {
+    const nicknameModal = document.getElementById('nickname-modal');
+    
+    // Okamžitě nastavit pointer-events na none, aby neblokoval klikání
+    nicknameModal.style.pointerEvents = 'none';
+    
+    // Animace opacity pro plynulé zmizení
+    nicknameModal.style.opacity = '0';
+    
+    // Nastavit display: none po dokončení animace
     setTimeout(() => {
-        settingsModal.style.display = 'none';
-    }, 300); // Match animation duration
+        nicknameModal.style.display = 'none';
+        // Ujistit se, že modál nebude blokovat interakci
+        nicknameModal.style.pointerEvents = 'auto';
+        nicknameModal.style.zIndex = '-1';
+    }, 300);
 }
 
-// Load settings from localStorage
-function loadSettings() {
-    const settings = JSON.parse(localStorage.getItem('tdGameSettings')) || {};
+// Save nickname
+function saveNickname() {
+    const nicknameInput = document.getElementById('nickname-input');
+    const nickname = nicknameInput.value.trim();
+    const errorMsg = document.getElementById('nickname-error');
     
-    gameState.showParticles = settings.showParticles !== undefined ? settings.showParticles : true;
-    gameState.showFloatingTexts = settings.showFloatingTexts !== undefined ? settings.showFloatingTexts : true;
-    gameState.particleIntensity = settings.particleIntensity !== undefined ? settings.particleIntensity : 1.0;
-    gameState.floatingTextIntensity = settings.floatingTextIntensity !== undefined ? settings.floatingTextIntensity : 1.0;
-    
-    // Update checkboxes to match loaded settings
-    if (toggleParticles) toggleParticles.checked = gameState.showParticles;
-    if (toggleFloatingTexts) toggleFloatingTexts.checked = gameState.showFloatingTexts;
-    
-    // Update particle intensity slider
-    if (particleIntensitySlider) {
-        particleIntensitySlider.value = Math.round(gameState.particleIntensity * 100);
-        particleIntensityValue.textContent = Math.round(gameState.particleIntensity * 100) + '%';
-        particleIntensitySlider.disabled = !gameState.showParticles;
-        particleIntensityValue.style.opacity = gameState.showParticles ? '1' : '0.5';
+    if (!nickname) {
+        errorMsg.textContent = 'Please enter a nickname';
+        errorMsg.style.display = 'block';
+        return;
     }
     
-    // Update floating text intensity slider
-    if (floatingTextIntensitySlider) {
-        floatingTextIntensitySlider.value = Math.round(gameState.floatingTextIntensity * 100);
-        floatingTextIntensityValue.textContent = Math.round(gameState.floatingTextIntensity * 100) + '%';
-        floatingTextIntensitySlider.disabled = !gameState.showFloatingTexts;
-        floatingTextIntensityValue.style.opacity = gameState.showFloatingTexts ? '1' : '0.5';
+    if (nickname.length < 3) {
+        errorMsg.textContent = 'Nickname must be at least 3 characters';
+        errorMsg.style.display = 'block';
+        return;
     }
+    
+    // Save nickname
+    setUserNickname(nickname);
+    hideNicknameModal();
 }
 
-// Save settings to localStorage
-function saveSettings() {
-    const settings = {
-        showParticles: gameState.showParticles,
-        showFloatingTexts: gameState.showFloatingTexts,
-        particleIntensity: gameState.particleIntensity,
-        floatingTextIntensity: gameState.floatingTextIntensity
+// Update the saveCurrentMap function
+async function saveCurrentMap() {
+    const mapNameInput = document.getElementById('map-name');
+    const mapName = mapNameInput.value.trim();
+    
+    if (!mapName) {
+        alert('Please enter a map name');
+        return;
+    }
+    
+    if (!validatePath()) {
+        alert('Map is not valid. ' + editorState.validationMessage);
+        return;
+    }
+    
+    // Check if user has a nickname
+    if (!hasUserNickname()) {
+        // Show nickname modal
+        showNicknameModal();
+        
+        // Set up an event listener for when the nickname is saved
+        const saveNicknameBtn = document.getElementById('save-nickname-btn');
+        const originalClickHandler = saveNicknameBtn.onclick;
+        
+        saveNicknameBtn.onclick = () => {
+            // Call the original handler
+            if (originalClickHandler) originalClickHandler();
+            
+            // If nickname was saved successfully, continue with map save
+            if (hasUserNickname()) {
+                // Remove the temporary event handler
+                saveNicknameBtn.onclick = originalClickHandler;
+                
+                // Continue with map save
+                completeMapSave(mapName);
+            }
+        };
+        
+        return;
+    }
+    
+    // If we already have a nickname, save directly
+    completeMapSave(mapName);
+}
+
+// Helper function to complete map saving
+async function completeMapSave(mapName) {
+    const difficultySelect = document.getElementById('difficulty-select');
+    const difficulty = difficultySelect.value;
+    
+    // Get values from inputs
+    let startMoney, startHealth, enemyHealthModifier, waveModifier, maxWaves;
+    
+    if (difficulty === 'custom') {
+        // Use values from custom inputs
+        startMoney = parseInt(document.getElementById('start-money').value);
+        startHealth = parseInt(document.getElementById('start-health').value);
+        enemyHealthModifier = parseFloat(document.getElementById('enemy-health-modifier').value);
+        waveModifier = parseFloat(document.getElementById('wave-modifier').value);
+        maxWaves = parseInt(document.getElementById('max-waves').value);
+        
+        // Ensure maxWaves is within valid range
+        maxWaves = Math.max(20, Math.min(40, maxWaves));
+    } else {
+        // Use predefined values based on difficulty
+        startMoney = 100; // Default medium values
+        startHealth = 20;
+        enemyHealthModifier = 1.0;
+        waveModifier = 1.0;
+        maxWaves = 20; // Default value for predefined difficulties
+        
+        switch (difficulty) {
+            case 'easy':
+                startMoney = 150;
+                startHealth = 25;
+                enemyHealthModifier = 0.8;
+                waveModifier = 0.9;
+                break;
+            case 'hard':
+                startMoney = 90;
+                startHealth = 15;
+                enemyHealthModifier = 1.2;
+                waveModifier = 1.1;
+                break;
+        }
+    }
+    
+    // Create map object
+    const map = {
+        name: mapName,
+        path: orderPathFromStartToEnd(),
+        startMoney,
+        startHealth,
+        enemyHealthModifier,
+        waveModifier,
+        maxWaves
     };
     
-    localStorage.setItem('tdGameSettings', JSON.stringify(settings));
+    const isEditing = editorState.currentMapName === mapName;
+    
+    // Save to Supabase
+    try {
+        await saveMapToSupabase(map);
+        
+        // Show different message based on whether we're creating or updating
+        if (isEditing) {
+            alert(`Map "${mapName}" updated successfully!`);
+        } else {
+            alert(`Map "${mapName}" saved successfully!`);
+        }
+        
+        // Reload custom maps in menu
+        loadCustomMaps();
+        
+        // Return to main menu
+        exitEditor();
+    } catch (error) {
+        console.error('Error saving map to Supabase:', error);
+        alert('Error saving map to the database. Please try again later.');
+    }
 }
 
-// Add event listeners for tower guide
-helpButton.addEventListener('click', showTowerGuide);
-inGameHelpButton.addEventListener('click', showTowerGuide);
-
-closeModalButton.addEventListener('click', hideTowerGuide);
-closeGuideButton.addEventListener('click', hideTowerGuide);
-towerGuideModal.addEventListener('click', (e) => {
-    if (e.target === towerGuideModal) {
-        hideTowerGuide();
-    }
-});
-
-// Add event listeners for custom maps modal
-openCustomMapsButton.addEventListener('click', showCustomMapsModal);
-customMapsCloseButton.addEventListener('click', hideCustomMapsModal);
-closeMapsButton.addEventListener('click', hideCustomMapsModal);
-customMapsModal.addEventListener('click', (e) => {
-    if (e.target === customMapsModal) {
-        hideCustomMapsModal();
-    }
-});
-
-// Add event listeners for settings modal
-settingsButton.addEventListener('click', showSettings);
-inGameSettingsButton.addEventListener('click', showSettings);
-
-settingsCloseButton.addEventListener('click', hideSettings);
-closeSettingsButton.addEventListener('click', hideSettings);
-settingsModal.addEventListener('click', (e) => {
-    if (e.target === settingsModal) {
-        hideSettings();
-    }
-});
-
-// Add event listeners for toggle switches
-toggleParticles.addEventListener('change', (e) => {
-    gameState.showParticles = e.target.checked;
-    // Enable/disable intensity slider based on particles being enabled/disabled
-    particleIntensitySlider.disabled = !e.target.checked;
-    particleIntensityValue.style.opacity = e.target.checked ? '1' : '0.5';
-    saveSettings();
-});
-
-toggleFloatingTexts.addEventListener('change', (e) => {
-    gameState.showFloatingTexts = e.target.checked;
-    // Enable/disable intensity slider based on floating texts being enabled/disabled
-    floatingTextIntensitySlider.disabled = !e.target.checked;
-    floatingTextIntensityValue.style.opacity = e.target.checked ? '1' : '0.5';
-    saveSettings();
-});
-
-// Add event listener for particle intensity slider
-particleIntensitySlider.addEventListener('input', (e) => {
-    const intensity = parseInt(e.target.value) / 100;
-    gameState.particleIntensity = intensity;
-    particleIntensityValue.textContent = e.target.value + '%';
-    saveSettings();
-});
-
-// Add event listener for floating text intensity slider
-floatingTextIntensitySlider.addEventListener('input', (e) => {
-    const intensity = parseInt(e.target.value) / 100;
-    gameState.floatingTextIntensity = intensity;
-    floatingTextIntensityValue.textContent = e.target.value + '%';
-    saveSettings();
-});
-
-// Create map button in modal
-createMapModalButton.addEventListener('click', () => {
-    initEditor();
-    hideCustomMapsModal();
-});
-
-// Search functionality
-mapSearchInput.addEventListener('input', (e) => {
-    loadCustomMapsIntoModal(e.target.value);
-});
-
-// Function to stop the game loop and clean up resources
-function stopGameLoop() {
-    if (gameLoopId) {
-        cancelAnimationFrame(gameLoopId);
-        gameLoopId = null;
-        gameState.lastTime = 0;
+// Update the loadCustomMaps function to use only Supabase
+async function loadCustomMaps() {
+    try {
+        // Fetch maps from Supabase
+        const maps = await fetchMaps();
+        const customMapsSection = document.getElementById('custom-maps-section');
+        
+        // Show/hide the custom maps section
+        if (maps.length > 0) {
+            customMapsSection.style.display = 'block';
+        } else {
+            customMapsSection.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error loading maps:', error);
+        // Hide custom maps section if error
+        const customMapsSection = document.getElementById('custom-maps-section');
+        customMapsSection.style.display = 'none';
     }
 }
 
@@ -831,6 +1077,34 @@ function init() {
     // Load settings from localStorage
     loadSettings();
     
+    // Initialize map selection event handlers
+    document.querySelectorAll('.map-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const mapType = button.dataset.map;
+            startGame(mapType);
+        });
+    });
+    
+    // Initialize create map button handler
+    document.getElementById('create-map-btn').addEventListener('click', initMapEditor);
+    
+    // Start menu background animation
+    initMenuParticles();
+    
+    // Initialize event listeners
+    initEventListeners();
+    
+    // Check if user has a nickname
+    if (!hasUserNickname()) {
+        // Show nickname modal after a short delay to make sure everything else is loaded
+        setTimeout(showNicknameModal, 500);
+    }
+    
+    // Initialize nickname and sorting listeners
+    initNicknameModalListeners();
+    initSortingListeners();
+    
+    // Load custom maps to check if we should show the custom maps section
     // Inicializovat gameState.currentPath pro správné vykreslení cesty v menu
     initGame('medium'); // Pre-inicializace se střední obtížností
     
@@ -1001,147 +1275,225 @@ function setCustomDifficulty() {
     difficultySelect.value = 'custom';
 }
 
-// Save current map
-function saveCurrentMap() {
-    const mapNameInput = document.getElementById('map-name');
-    const mapName = mapNameInput.value.trim();
+// Load settings from localStorage
+function loadSettings() {
+    const settings = JSON.parse(localStorage.getItem('tdGameSettings')) || {};
     
-    if (!mapName) {
-        alert('Please enter a map name');
-        return;
+    gameState.showParticles = settings.showParticles !== undefined ? settings.showParticles : true;
+    gameState.showFloatingTexts = settings.showFloatingTexts !== undefined ? settings.showFloatingTexts : true;
+    gameState.particleIntensity = settings.particleIntensity !== undefined ? settings.particleIntensity : 1.0;
+    gameState.floatingTextIntensity = settings.floatingTextIntensity !== undefined ? settings.floatingTextIntensity : 1.0;
+    
+    // Update checkboxes to match loaded settings
+    if (toggleParticles) toggleParticles.checked = gameState.showParticles;
+    if (toggleFloatingTexts) toggleFloatingTexts.checked = gameState.showFloatingTexts;
+    
+    // Update particle intensity slider
+    if (particleIntensitySlider) {
+        particleIntensitySlider.value = Math.round(gameState.particleIntensity * 100);
+        particleIntensityValue.textContent = Math.round(gameState.particleIntensity * 100) + '%';
+        particleIntensitySlider.disabled = !gameState.showParticles;
+        particleIntensityValue.style.opacity = gameState.showParticles ? '1' : '0.5';
     }
     
-    if (!validatePath()) {
-        alert('Map is not valid. ' + editorState.validationMessage);
-        return;
+    // Update floating text intensity slider
+    if (floatingTextIntensitySlider) {
+        floatingTextIntensitySlider.value = Math.round(gameState.floatingTextIntensity * 100);
+        floatingTextIntensityValue.textContent = Math.round(gameState.floatingTextIntensity * 100) + '%';
+        floatingTextIntensitySlider.disabled = !gameState.showFloatingTexts;
+        floatingTextIntensityValue.style.opacity = gameState.showFloatingTexts ? '1' : '0.5';
     }
-    
-    const difficultySelect = document.getElementById('difficulty-select');
-    const difficulty = difficultySelect.value;
-    
-    // Get values from inputs
-    let startMoney, startHealth, enemyHealthModifier, waveModifier, maxWaves;
-    
-    if (difficulty === 'custom') {
-        // Use values from custom inputs
-        startMoney = parseInt(document.getElementById('start-money').value);
-        startHealth = parseInt(document.getElementById('start-health').value);
-        enemyHealthModifier = parseFloat(document.getElementById('enemy-health-modifier').value);
-        waveModifier = parseFloat(document.getElementById('wave-modifier').value);
-        maxWaves = parseInt(document.getElementById('max-waves').value);
-        
-        // Ensure maxWaves is within valid range
-        maxWaves = Math.max(20, Math.min(40, maxWaves));
-    } else {
-        // Use predefined values based on difficulty
-        startMoney = 100; // Default medium values
-        startHealth = 20;
-        enemyHealthModifier = 1.0;
-        waveModifier = 1.0;
-        maxWaves = 20; // Default value for predefined difficulties
-        
-        switch (difficulty) {
-            case 'easy':
-                startMoney = 150;
-                startHealth = 25;
-                enemyHealthModifier = 0.8;
-                waveModifier = 0.9;
-                break;
-            case 'hard':
-                startMoney = 90;
-                startHealth = 15;
-                enemyHealthModifier = 1.2;
-                waveModifier = 1.1;
-                break;
-        }
-    }
-    
-    // Create map object
-    const map = {
-        name: mapName,
-        path: orderPathFromStartToEnd(),
-        startMoney,
-        startHealth,
-        enemyHealthModifier,
-        waveModifier,
-        maxWaves
+}
+
+// Save settings to localStorage
+function saveSettings() {
+    const settings = {
+        showParticles: gameState.showParticles,
+        showFloatingTexts: gameState.showFloatingTexts,
+        particleIntensity: gameState.particleIntensity,
+        floatingTextIntensity: gameState.floatingTextIntensity
     };
     
-    // Get existing custom maps
-    const customMaps = getCustomMaps();
-    
-    const isEditing = editorState.currentMapName === mapName;
-    
-    // Check if map name already exists and it's not the one being edited
-    if (customMaps[mapName] && !isEditing && !confirm(`A map named "${mapName}" already exists. Do you want to overwrite it?`)) {
-        return;
-    }
-    
-    // Add or update map
-    customMaps[mapName] = map;
-    
-    // Save to localStorage
-    localStorage.setItem('towerDefenseCustomMaps', JSON.stringify(customMaps));
-    
-    // Show different message based on whether we're creating or updating
-    if (isEditing) {
-        alert(`Map "${mapName}" updated successfully!`);
-    } else {
-        alert(`Map "${mapName}" saved successfully!`);
-    }
-    
-    // Reload custom maps in menu
-    loadCustomMaps();
-    
-    // Return to main menu
-    exitEditor();
+    localStorage.setItem('tdGameSettings', JSON.stringify(settings));
 }
 
-// Load custom maps from localStorage
-function loadCustomMaps() {
-    const customMaps = getCustomMaps();
-    const customMapsSection = document.getElementById('custom-maps-section');
-    
-    // Show/hide the custom maps section
-    if (Object.keys(customMaps).length > 0) {
-        customMapsSection.style.display = 'block';
-    } else {
-        customMapsSection.style.display = 'none';
+// Add event listeners for tower guide
+helpButton.addEventListener('click', showTowerGuide);
+inGameHelpButton.addEventListener('click', showTowerGuide);
+
+closeModalButton.addEventListener('click', hideTowerGuide);
+closeGuideButton.addEventListener('click', hideTowerGuide);
+towerGuideModal.addEventListener('click', (e) => {
+    if (e.target === towerGuideModal) {
+        hideTowerGuide();
+    }
+});
+
+// Add event listeners for custom maps modal
+openCustomMapsButton.addEventListener('click', showCustomMapsModal);
+customMapsCloseButton.addEventListener('click', hideCustomMapsModal);
+closeMapsButton.addEventListener('click', hideCustomMapsModal);
+customMapsModal.addEventListener('click', (e) => {
+    if (e.target === customMapsModal) {
+        hideCustomMapsModal();
+    }
+});
+
+// Add event listeners for settings modal
+settingsButton.addEventListener('click', showSettings);
+inGameSettingsButton.addEventListener('click', showSettings);
+
+settingsCloseButton.addEventListener('click', hideSettings);
+closeSettingsButton.addEventListener('click', hideSettings);
+settingsModal.addEventListener('click', (e) => {
+    if (e.target === settingsModal) {
+        hideSettings();
+    }
+});
+
+// Add event listeners for toggle switches
+toggleParticles.addEventListener('change', (e) => {
+    gameState.showParticles = e.target.checked;
+    // Enable/disable intensity slider based on particles being enabled/disabled
+    particleIntensitySlider.disabled = !e.target.checked;
+    particleIntensityValue.style.opacity = e.target.checked ? '1' : '0.5';
+    saveSettings();
+});
+
+toggleFloatingTexts.addEventListener('change', (e) => {
+    gameState.showFloatingTexts = e.target.checked;
+    // Enable/disable intensity slider based on floating texts being enabled/disabled
+    floatingTextIntensitySlider.disabled = !e.target.checked;
+    floatingTextIntensityValue.style.opacity = e.target.checked ? '1' : '0.5';
+    saveSettings();
+});
+
+// Add event listener for particle intensity slider
+particleIntensitySlider.addEventListener('input', (e) => {
+    const intensity = parseInt(e.target.value) / 100;
+    gameState.particleIntensity = intensity;
+    particleIntensityValue.textContent = e.target.value + '%';
+    saveSettings();
+});
+
+// Add event listener for floating text intensity slider
+floatingTextIntensitySlider.addEventListener('input', (e) => {
+    const intensity = parseInt(e.target.value) / 100;
+    gameState.floatingTextIntensity = intensity;
+    floatingTextIntensityValue.textContent = e.target.value + '%';
+    saveSettings();
+});
+
+// Create map button in modal
+createMapModalButton.addEventListener('click', () => {
+    initEditor();
+    hideCustomMapsModal();
+});
+
+// Search functionality
+mapSearchInput.addEventListener('input', (e) => {
+    loadCustomMapsIntoModal(e.target.value);
+});
+
+// Function to stop the game loop and clean up resources
+function stopGameLoop() {
+    if (gameLoopId) {
+        cancelAnimationFrame(gameLoopId);
+        gameLoopId = null;
+        gameState.lastTime = 0;
     }
 }
 
-// Edit an existing custom map
-function editCustomMap(mapName) {
-    const customMaps = getCustomMaps();
-    const map = customMaps[mapName];
+// Show settings modal
+function showSettings() {
+    settingsModal.style.display = 'flex';
+    // Add slight animation delay to make sure flex layout is applied first
+    setTimeout(() => {
+        settingsModal.style.opacity = '1';
+    }, 10);
     
-    if (!map) {
-        alert('Map not found!');
-        return;
-    }
+    // Update checkboxes to match current settings
+    toggleParticles.checked = gameState.showParticles;
+    toggleFloatingTexts.checked = gameState.showFloatingTexts;
     
-    // Load map into editor
-    initEditor(mapName, map);
+    // Update particle intensity slider
+    particleIntensitySlider.value = Math.round(gameState.particleIntensity * 100);
+    particleIntensityValue.textContent = Math.round(gameState.particleIntensity * 100) + '%';
+    particleIntensitySlider.disabled = !gameState.showParticles;
+    particleIntensityValue.style.opacity = gameState.showParticles ? '1' : '0.5';
+    
+    // Update floating text intensity slider
+    floatingTextIntensitySlider.value = Math.round(gameState.floatingTextIntensity * 100);
+    floatingTextIntensityValue.textContent = Math.round(gameState.floatingTextIntensity * 100) + '%';
+    floatingTextIntensitySlider.disabled = !gameState.showFloatingTexts;
+    floatingTextIntensityValue.style.opacity = gameState.showFloatingTexts ? '1' : '0.5';
 }
 
-// Start game with a custom map
-function startGameWithCustomMap(mapName) {
-    const customMaps = getCustomMaps();
-    const customMap = customMaps[mapName];
-    
-    if (!customMap) {
-        alert('Map not found!');
-        return;
-    }
-    
-    // Hide main menu
-    document.getElementById('main-menu').style.display = 'none';
-    document.getElementById('game-container').style.display = 'flex';
-    
-    // Initialize game with custom map
-    initGameWithCustomMap(customMap);
+// Hide settings modal
+function hideSettings() {
+    settingsModal.style.opacity = '0';
+    setTimeout(() => {
+        settingsModal.style.display = 'none';
+    }, 300); // Match animation duration
 }
 
+// Initialize nickname modal event listeners
+function initNicknameModalListeners() {
+    const nicknameCloseBtn = document.querySelector('.nickname-close');
+    const saveNicknameBtn = document.getElementById('save-nickname-btn');
+    const nicknameInput = document.getElementById('nickname-input');
+    
+    if (nicknameCloseBtn) {
+        nicknameCloseBtn.addEventListener('click', hideNicknameModal);
+    }
+    
+    if (saveNicknameBtn) {
+        saveNicknameBtn.addEventListener('click', saveNickname);
+    }
+    
+    if (nicknameInput) {
+        nicknameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                saveNickname();
+            }
+        });
+    }
+}
+
+// Initialize sorting controls event listeners
+function initSortingListeners() {
+    const sortSelect = document.getElementById('sort-maps');
+    const sortDirectionBtn = document.getElementById('sort-direction');
+    
+    if (sortSelect) {
+        sortSelect.addEventListener('change', () => {
+            const searchTerm = document.getElementById('map-search').value;
+            const sortBy = sortSelect.value;
+            const ascending = sortDirectionBtn ? sortDirectionBtn.classList.contains('asc') : false;
+            loadCustomMapsIntoModal(searchTerm, sortBy, ascending);
+        });
+    }
+    
+    if (sortDirectionBtn) {
+        sortDirectionBtn.addEventListener('click', () => {
+            sortDirectionBtn.classList.toggle('asc');
+            // Update icon
+            const icon = sortDirectionBtn.querySelector('i');
+            if (sortDirectionBtn.classList.contains('asc')) {
+                icon.className = 'fas fa-sort-up';
+            } else {
+                icon.className = 'fas fa-sort-down';
+            }
+            
+            const searchTerm = document.getElementById('map-search').value;
+            const sortBy = sortSelect ? sortSelect.value : 'created_at';
+            const ascending = sortDirectionBtn.classList.contains('asc');
+            loadCustomMapsIntoModal(searchTerm, sortBy, ascending);
+        });
+    }
+}
+
+// Přidání chybějící funkce initGameWithCustomMap
 // Initialize game with custom map
 function initGameWithCustomMap(map) {
     gameState.currentMapType = 'custom';

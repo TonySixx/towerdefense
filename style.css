@@ -1168,18 +1168,22 @@ canvas {
 /* Tower Guide Modal */
 .modal {
     position: fixed;
-    z-index: 1000;
-    left: 0;
     top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow-y: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: none;
     opacity: 0;
+    justify-content: center;
+    align-items: center;
     transition: opacity 0.3s ease;
+    z-index: 1000;
+}
+
+.modal[style*="display: none"] {
+    pointer-events: none !important;
+    z-index: -1 !important;
 }
 
 .modal-content {
@@ -2335,4 +2339,134 @@ input:checked + .slider:before {
 .intensity-slider::-moz-range-thumb:hover {
     background: #0b7dda;
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Nickname Modal */
+#nickname-modal .modal-content {
+    max-width: 400px;
+}
+
+#nickname-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #444;
+    background-color: #333;
+    color: #fff;
+    border-radius: 4px;
+}
+
+.error-message {
+    color: #ff6b6b;
+    font-size: 0.85rem;
+    margin-top: -10px;
+    margin-bottom: 10px;
+    display: none;
+}
+
+/* Rating Stars */
+.rating-container {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.rating-stars {
+    display: flex;
+}
+
+.star {
+    font-size: 18px;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.2s;
+    margin-right: 2px;
+}
+
+.star.active {
+    color: #ffbd2e;
+}
+
+.star:hover {
+    color: #ffd57e;
+}
+
+.rating-info {
+    font-size: 0.8rem;
+    color: #aaa;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.avg-rating {
+    margin-right: 5px;
+}
+
+.rating-count {
+    color: #888;
+}
+
+/* Map Sorting Controls */
+.maps-sort-controls {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 0 20px;
+}
+
+.maps-sort-controls label {
+    margin-right: 10px;
+    color: #aaa;
+}
+
+#sort-maps {
+    padding: 5px;
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 4px;
+}
+
+.sort-btn {
+    background-color: transparent;
+    border: none;
+    color: #aaa;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.sort-btn:hover {
+    color: #fff;
+}
+
+/* Map item enhancements */
+.custom-map-item {
+    position: relative;
+}
+
+.map-author {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 2px;
+}
+
+/* Add user rating indicator */
+.user-rated {
+    font-size: 0.7rem;
+    color: #ffbd2e;
+    margin-left: 5px;
+}
+
+.rating-stars.disabled .star {
+    opacity: 0.5;
+    cursor: default !important;
+}
+
+.author-note {
+    font-size: 0.7rem;
+    color: #888;
+    margin-left: 5px;
 }
