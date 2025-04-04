@@ -337,10 +337,14 @@ export function draw(ctx, canvas, gameState, grid, towers, projectiles, enemies,
     towers.forEach(tower => tower.draw(ctx, placingTower, selectedTowerType, mouse.gridX, mouse.gridY));
     projectiles.forEach(proj => proj.draw(ctx));
     enemies.forEach(enemy => enemy.draw(ctx));
-    particles.forEach(particle => particle.draw(ctx));
     
-    // Draw floating texts
-    if (gameState.floatingTexts) {
+    // Draw particles only if enabled in settings
+    if (gameState.showParticles) {
+        particles.forEach(particle => particle.draw(ctx));
+    }
+    
+    // Draw floating texts only if enabled in settings
+    if (gameState.showFloatingTexts && gameState.floatingTexts) {
         gameState.floatingTexts.forEach(text => text.draw(ctx));
     }
 

@@ -40,7 +40,12 @@ export const gameState = {
     currentPath: null,
     enemyHealthModifier: 1.0,
     waveModifier: 1.0,
-    maxWaves: 20 // Default pro standardní mapy
+    maxWaves: 20, // Default pro standardní mapy
+    // Visual effect settings
+    showParticles: true,
+    showFloatingTexts: true,
+    particleIntensity: 1.0, // Intenzita částicových efektů (0.0 - 1.0)
+    floatingTextIntensity: 1.0 // Intenzita plovoucích textů (0.0 - 1.0)
 };
 
 // Initialize the game grid
@@ -85,14 +90,20 @@ export function initGame(mapType = 'medium') {
 
 // Helper function to create particles
 export function createParticles(x, y, color, count, speed, life, size) {
-    for (let i = 0; i < count; i++) {
+    // Upravit počet částic podle nastavené intenzity
+    const adjustedCount = Math.max(1, Math.round(count * gameState.particleIntensity));
+    
+    for (let i = 0; i < adjustedCount; i++) {
         gameState.particles.push(new Particle(x, y, color, size, speed, life));
     }
 }
 
 // Helper function to create floating text
 export function createFloatingText(x, y, text, color = '#ffd700', size = 16, lifespan = 1500) {
-    gameState.floatingTexts.push(new FloatingText(x, y, text, color, size, lifespan));
+    // Upravit velikost textu podle nastavené intenzity
+    const adjustedSize = Math.max(8, Math.round(size * gameState.floatingTextIntensity));
+    
+    gameState.floatingTexts.push(new FloatingText(x, y, text, color, adjustedSize, lifespan));
 }
 
 // Spawn new enemy - aktualizovaná metoda pro nový systém vln

@@ -45,6 +45,11 @@
         <button id="help-button" class="help-button">
             <i class="fas fa-question-circle"></i>
         </button>
+        
+        <!-- Settings button -->
+        <button id="settings-button" class="settings-button">
+            <i class="fas fa-cog"></i>
+        </button>
     </div>
 
     <!-- Tower Guide Modal -->
@@ -235,6 +240,49 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Game Settings</h2>
+                <span class="close-modal settings-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="settings-container">
+                    <div class="setting-item">
+                        <label for="toggle-particles">Particle Effects</label>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-particles" checked>
+                            <span class="slider round"></span>
+                        </label>
+                        <p class="setting-description">Toggle visual particle effects in the game (explosions, coin effects, etc.)</p>
+                    </div>
+                    <div class="setting-item">
+                        <label for="particle-intensity">Particle Intensity: <span id="particle-intensity-value">100%</span></label>
+                        <input type="range" id="particle-intensity-slider" min="0" max="100" value="100" class="intensity-slider">
+                        <p class="setting-description">Adjust the intensity of particle effects (lower values improve performance)</p>
+                    </div>
+                    <div class="setting-item">
+                        <label for="toggle-floating-texts">Floating Texts</label>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-floating-texts" checked>
+                            <span class="slider round"></span>
+                        </label>
+                        <p class="setting-description">Toggle floating text indicators in the game (damage numbers, gold gains, etc.)</p>
+                    </div>
+                    <div class="setting-item">
+                        <label for="floating-text-intensity">Floating Text Size: <span id="floating-text-intensity-value">100%</span></label>
+                        <input type="range" id="floating-text-intensity-slider" min="0" max="100" value="100" class="intensity-slider">
+                        <p class="setting-description">Adjust the size of floating text indicators in the game</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="close-settings-button">Close</button>
+            </div>
+        </div>
+    </div>
+
     <div id="game-container" style="display: none;">
         <div id="game-layout">
             <canvas id="gameCanvas" width="800" height="600"></canvas>
@@ -346,6 +394,7 @@
                 <div class="game-controls">
                     <button id="startWaveButton"><i class="fas fa-play"></i> Start Wave</button>
                     <button id="in-game-help" class="in-game-help-button"><i class="fas fa-question-circle"></i></button>
+                    <button id="in-game-settings" class="in-game-settings-button"><i class="fas fa-cog"></i></button>
                 </div>
             </div>
             <div id="selected-tower-info">Selected tower: <span id="selected-tower-type">None</span></div>

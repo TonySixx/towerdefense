@@ -50,6 +50,19 @@ const noMapsMessage = document.getElementById('no-maps-message');
 const noSearchResultsMessage = document.getElementById('no-search-results');
 const createMapModalButton = document.getElementById('create-map-modal-btn');
 
+// Settings Modal Elements
+const settingsButton = document.getElementById('settings-button');
+const settingsModal = document.getElementById('settings-modal');
+const settingsCloseButton = document.querySelector('.settings-close');
+const closeSettingsButton = document.querySelector('.close-settings-button');
+const toggleParticles = document.getElementById('toggle-particles');
+const toggleFloatingTexts = document.getElementById('toggle-floating-texts');
+const particleIntensitySlider = document.getElementById('particle-intensity-slider');
+const particleIntensityValue = document.getElementById('particle-intensity-value');
+const floatingTextIntensitySlider = document.getElementById('floating-text-intensity-slider');
+const floatingTextIntensityValue = document.getElementById('floating-text-intensity-value');
+const inGameSettingsButton = document.getElementById('in-game-settings');
+
 // Show tower guide modal
 function showTowerGuide() {
     towerGuideModal.style.display = 'flex';
@@ -177,6 +190,81 @@ function loadCustomMapsIntoModal(searchTerm = '') {
     }
 }
 
+// Show settings modal
+function showSettings() {
+    settingsModal.style.display = 'flex';
+    // Add slight animation delay to make sure flex layout is applied first
+    setTimeout(() => {
+        settingsModal.style.opacity = '1';
+    }, 10);
+    
+    // Update checkboxes to match current settings
+    toggleParticles.checked = gameState.showParticles;
+    toggleFloatingTexts.checked = gameState.showFloatingTexts;
+    
+    // Update particle intensity slider
+    particleIntensitySlider.value = Math.round(gameState.particleIntensity * 100);
+    particleIntensityValue.textContent = Math.round(gameState.particleIntensity * 100) + '%';
+    particleIntensitySlider.disabled = !gameState.showParticles;
+    particleIntensityValue.style.opacity = gameState.showParticles ? '1' : '0.5';
+    
+    // Update floating text intensity slider
+    floatingTextIntensitySlider.value = Math.round(gameState.floatingTextIntensity * 100);
+    floatingTextIntensityValue.textContent = Math.round(gameState.floatingTextIntensity * 100) + '%';
+    floatingTextIntensitySlider.disabled = !gameState.showFloatingTexts;
+    floatingTextIntensityValue.style.opacity = gameState.showFloatingTexts ? '1' : '0.5';
+}
+
+// Hide settings modal
+function hideSettings() {
+    settingsModal.style.opacity = '0';
+    setTimeout(() => {
+        settingsModal.style.display = 'none';
+    }, 300); // Match animation duration
+}
+
+// Load settings from localStorage
+function loadSettings() {
+    const settings = JSON.parse(localStorage.getItem('tdGameSettings')) || {};
+    
+    gameState.showParticles = settings.showParticles !== undefined ? settings.showParticles : true;
+    gameState.showFloatingTexts = settings.showFloatingTexts !== undefined ? settings.showFloatingTexts : true;
+    gameState.particleIntensity = settings.particleIntensity !== undefined ? settings.particleIntensity : 1.0;
+    gameState.floatingTextIntensity = settings.floatingTextIntensity !== undefined ? settings.floatingTextIntensity : 1.0;
+    
+    // Update checkboxes to match loaded settings
+    if (toggleParticles) toggleParticles.checked = gameState.showParticles;
+    if (toggleFloatingTexts) toggleFloatingTexts.checked = gameState.showFloatingTexts;
+    
+    // Update particle intensity slider
+    if (particleIntensitySlider) {
+        particleIntensitySlider.value = Math.round(gameState.particleIntensity * 100);
+        particleIntensityValue.textContent = Math.round(gameState.particleIntensity * 100) + '%';
+        particleIntensitySlider.disabled = !gameState.showParticles;
+        particleIntensityValue.style.opacity = gameState.showParticles ? '1' : '0.5';
+    }
+    
+    // Update floating text intensity slider
+    if (floatingTextIntensitySlider) {
+        floatingTextIntensitySlider.value = Math.round(gameState.floatingTextIntensity * 100);
+        floatingTextIntensityValue.textContent = Math.round(gameState.floatingTextIntensity * 100) + '%';
+        floatingTextIntensitySlider.disabled = !gameState.showFloatingTexts;
+        floatingTextIntensityValue.style.opacity = gameState.showFloatingTexts ? '1' : '0.5';
+    }
+}
+
+// Save settings to localStorage
+function saveSettings() {
+    const settings = {
+        showParticles: gameState.showParticles,
+        showFloatingTexts: gameState.showFloatingTexts,
+        particleIntensity: gameState.particleIntensity,
+        floatingTextIntensity: gameState.floatingTextIntensity
+    };
+    
+    localStorage.setItem('tdGameSettings', JSON.stringify(settings));
+}
+
 // Add event listeners for tower guide
 helpButton.addEventListener('click', showTowerGuide);
 inGameHelpButton.addEventListener('click', showTowerGuide);
@@ -197,6 +285,51 @@ customMapsModal.addEventListener('click', (e) => {
     if (e.target === customMapsModal) {
         hideCustomMapsModal();
     }
+});
+
+// Add event listeners for settings modal
+settingsButton.addEventListener('click', showSettings);
+inGameSettingsButton.addEventListener('click', showSettings);
+
+settingsCloseButton.addEventListener('click', hideSettings);
+closeSettingsButton.addEventListener('click', hideSettings);
+settingsModal.addEventListener('click', (e) => {
+    if (e.target === settingsModal) {
+        hideSettings();
+    }
+});
+
+// Add event listeners for toggle switches
+toggleParticles.addEventListener('change', (e) => {
+    gameState.showParticles = e.target.checked;
+    // Enable/disable intensity slider based on particles being enabled/disabled
+    particleIntensitySlider.disabled = !e.target.checked;
+    particleIntensityValue.style.opacity = e.target.checked ? '1' : '0.5';
+    saveSettings();
+});
+
+toggleFloatingTexts.addEventListener('change', (e) => {
+    gameState.showFloatingTexts = e.target.checked;
+    // Enable/disable intensity slider based on floating texts being enabled/disabled
+    floatingTextIntensitySlider.disabled = !e.target.checked;
+    floatingTextIntensityValue.style.opacity = e.target.checked ? '1' : '0.5';
+    saveSettings();
+});
+
+// Add event listener for particle intensity slider
+particleIntensitySlider.addEventListener('input', (e) => {
+    const intensity = parseInt(e.target.value) / 100;
+    gameState.particleIntensity = intensity;
+    particleIntensityValue.textContent = e.target.value + '%';
+    saveSettings();
+});
+
+// Add event listener for floating text intensity slider
+floatingTextIntensitySlider.addEventListener('input', (e) => {
+    const intensity = parseInt(e.target.value) / 100;
+    gameState.floatingTextIntensity = intensity;
+    floatingTextIntensityValue.textContent = e.target.value + '%';
+    saveSettings();
 });
 
 // Create map button in modal
@@ -667,6 +800,9 @@ function initEventListeners() {
 
 // Initialize and Start Game
 function init() {
+    // Load settings from localStorage
+    loadSettings();
+    
     // Inicializovat gameState.currentPath pro správné vykreslení cesty v menu
     initGame('medium'); // Pre-inicializace se střední obtížností
     
