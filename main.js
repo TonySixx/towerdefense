@@ -1046,6 +1046,19 @@ function handleKeyDown(e) {
             }
             break;
         
+        // Klávesa M pro návrat do menu
+        case 'm':
+        case 'M':
+            // Kontrola, zda není otevřené nějaké modální okno
+            if (document.getElementById('settings-modal').style.display !== 'none' ||
+                document.getElementById('tower-guide-modal').style.display !== 'none' ||
+                document.getElementById('custom-maps-modal').style.display !== 'none') {
+                return;
+            }
+            // Návrat do menu
+            showMenu();
+            break;
+        
         // Klávesa Esc pro zrušení výběru
         case 'Escape':
             if (gameState.selectedTower || gameState.placingTower) {
@@ -1470,6 +1483,15 @@ settingsModal.addEventListener('click', (e) => {
         hideSettings();
     }
 });
+
+// Add event listener for Return to Menu button in settings
+const returnToMenuButton = document.getElementById('return-to-menu-button');
+if (returnToMenuButton) {
+    returnToMenuButton.addEventListener('click', () => {
+        hideSettings(); // Nejdřív skryjeme modální okno
+        showMenu(); // Potom přejdeme do menu
+    });
+}
 
 // Add event listeners for toggle switches
 toggleParticles.addEventListener('change', (e) => {
