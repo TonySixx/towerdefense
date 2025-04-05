@@ -1375,6 +1375,9 @@ function loadSettings() {
     gameState.showFloatingTexts = settings.showFloatingTexts !== undefined ? settings.showFloatingTexts : true;
     gameState.particleIntensity = settings.particleIntensity !== undefined ? settings.particleIntensity : 1.0;
     gameState.floatingTextIntensity = settings.floatingTextIntensity !== undefined ? settings.floatingTextIntensity : 1.0;
+    gameState.floatingTextEffects = settings.floatingTextEffects !== undefined ? settings.floatingTextEffects : 1.0;
+    gameState.floatingTextDuration = settings.floatingTextDuration !== undefined ? settings.floatingTextDuration : 1.0;
+    gameState.projectileQuality = settings.projectileQuality !== undefined ? settings.projectileQuality : 1.0;
     
     // Update checkboxes to match loaded settings
     if (toggleParticles) toggleParticles.checked = gameState.showParticles;
@@ -1395,6 +1398,28 @@ function loadSettings() {
         floatingTextIntensitySlider.disabled = !gameState.showFloatingTexts;
         floatingTextIntensityValue.style.opacity = gameState.showFloatingTexts ? '1' : '0.5';
     }
+    
+    // Update floating text effects slider
+    if (floatingTextEffectsSlider) {
+        floatingTextEffectsSlider.value = Math.round(gameState.floatingTextEffects * 100);
+        floatingTextEffectsValue.textContent = Math.round(gameState.floatingTextEffects * 100) + '%';
+        floatingTextEffectsSlider.disabled = !gameState.showFloatingTexts;
+        floatingTextEffectsValue.style.opacity = gameState.showFloatingTexts ? '1' : '0.5';
+    }
+    
+    // Update floating text duration slider
+    if (floatingTextDurationSlider) {
+        floatingTextDurationSlider.value = Math.round(gameState.floatingTextDuration * 100);
+        floatingTextDurationValue.textContent = Math.round(gameState.floatingTextDuration * 100) + '%';
+        floatingTextDurationSlider.disabled = !gameState.showFloatingTexts;
+        floatingTextDurationValue.style.opacity = gameState.showFloatingTexts ? '1' : '0.5';
+    }
+    
+    // Update projectile quality slider
+    if (projectileQualitySlider) {
+        projectileQualitySlider.value = Math.round(gameState.projectileQuality * 100);
+        projectileQualityValue.textContent = Math.round(gameState.projectileQuality * 100) + '%';
+    }
 }
 
 // Save settings to localStorage
@@ -1403,7 +1428,10 @@ function saveSettings() {
         showParticles: gameState.showParticles,
         showFloatingTexts: gameState.showFloatingTexts,
         particleIntensity: gameState.particleIntensity,
-        floatingTextIntensity: gameState.floatingTextIntensity
+        floatingTextIntensity: gameState.floatingTextIntensity,
+        floatingTextEffects: gameState.floatingTextEffects,
+        floatingTextDuration: gameState.floatingTextDuration,
+        projectileQuality: gameState.projectileQuality
     };
     
     localStorage.setItem('tdGameSettings', JSON.stringify(settings));
@@ -1457,6 +1485,15 @@ toggleFloatingTexts.addEventListener('change', (e) => {
     // Enable/disable intensity slider based on floating texts being enabled/disabled
     floatingTextIntensitySlider.disabled = !e.target.checked;
     floatingTextIntensityValue.style.opacity = e.target.checked ? '1' : '0.5';
+    
+    // Enable/disable effects slider based on floating texts being enabled/disabled
+    floatingTextEffectsSlider.disabled = !e.target.checked;
+    floatingTextEffectsValue.style.opacity = e.target.checked ? '1' : '0.5';
+    
+    // Enable/disable duration slider based on floating texts being enabled/disabled
+    floatingTextDurationSlider.disabled = !e.target.checked;
+    floatingTextDurationValue.style.opacity = e.target.checked ? '1' : '0.5';
+    
     saveSettings();
 });
 
@@ -1475,6 +1512,46 @@ floatingTextIntensitySlider.addEventListener('input', (e) => {
     floatingTextIntensityValue.textContent = e.target.value + '%';
     saveSettings();
 });
+
+// Add event listener for floating text effects slider
+const floatingTextEffectsSlider = document.getElementById('floating-text-effects-slider');
+const floatingTextEffectsValue = document.getElementById('floating-text-effects-value');
+
+if (floatingTextEffectsSlider) {
+    floatingTextEffectsSlider.addEventListener('input', (e) => {
+        const effects = parseInt(e.target.value) / 100;
+        gameState.floatingTextEffects = effects;
+        floatingTextEffectsValue.textContent = e.target.value + '%';
+        saveSettings();
+    });
+}
+
+// Add event listener for floating text duration slider
+const floatingTextDurationSlider = document.getElementById('floating-text-duration-slider');
+const floatingTextDurationValue = document.getElementById('floating-text-duration-value');
+
+if (floatingTextDurationSlider) {
+    floatingTextDurationSlider.addEventListener('input', (e) => {
+        // Convert 50-200 range to 0.5-2.0 for the duration factor
+        const duration = parseInt(e.target.value) / 100;
+        gameState.floatingTextDuration = duration;
+        floatingTextDurationValue.textContent = e.target.value + '%';
+        saveSettings();
+    });
+}
+
+// Add event listener for projectile quality slider
+const projectileQualitySlider = document.getElementById('projectile-quality-slider');
+const projectileQualityValue = document.getElementById('projectile-quality-value');
+
+if (projectileQualitySlider) {
+    projectileQualitySlider.addEventListener('input', (e) => {
+        const quality = parseInt(e.target.value) / 100;
+        gameState.projectileQuality = quality;
+        projectileQualityValue.textContent = e.target.value + '%';
+        saveSettings();
+    });
+}
 
 // Create map button in modal
 createMapModalButton.addEventListener('click', () => {
@@ -1525,6 +1602,22 @@ function showSettings() {
     floatingTextIntensityValue.textContent = Math.round(gameState.floatingTextIntensity * 100) + '%';
     floatingTextIntensitySlider.disabled = !gameState.showFloatingTexts;
     floatingTextIntensityValue.style.opacity = gameState.showFloatingTexts ? '1' : '0.5';
+    
+    // Update floating text effects slider
+    floatingTextEffectsSlider.value = Math.round(gameState.floatingTextEffects * 100);
+    floatingTextEffectsValue.textContent = Math.round(gameState.floatingTextEffects * 100) + '%';
+    floatingTextEffectsSlider.disabled = !gameState.showFloatingTexts;
+    floatingTextEffectsValue.style.opacity = gameState.showFloatingTexts ? '1' : '0.5';
+    
+    // Update floating text duration slider
+    floatingTextDurationSlider.value = Math.round(gameState.floatingTextDuration * 100);
+    floatingTextDurationValue.textContent = Math.round(gameState.floatingTextDuration * 100) + '%';
+    floatingTextDurationSlider.disabled = !gameState.showFloatingTexts;
+    floatingTextDurationValue.style.opacity = gameState.showFloatingTexts ? '1' : '0.5';
+    
+    // Update projectile quality slider
+    projectileQualitySlider.value = Math.round(gameState.projectileQuality * 100);
+    projectileQualityValue.textContent = Math.round(gameState.projectileQuality * 100) + '%';
 }
 
 // Hide settings modal

@@ -15,8 +15,9 @@ class Projectile {
         this.size = size;
         this.toRemove = false;
         // For trail effect
+        this.baseTrailLength = 5; // Base trail length
+        this.trailLength = Math.max(2, Math.round(this.baseTrailLength * gameState.projectileQuality)); // Adjust based on quality
         this.trail = [];
-        this.trailLength = 5;
         
         // Speciální efekty projektilu
         this.specialEffects = specialEffects;
@@ -25,7 +26,8 @@ class Projectile {
         if (specialEffects) {
             // Burn efekt - delší trail
             if (specialEffects.burnDamage) {
-                this.trailLength = 8;
+                this.baseTrailLength = 8;
+                this.trailLength = Math.max(2, Math.round(this.baseTrailLength * gameState.projectileQuality));
                 this.burnColor = '#ff5252'; // Červená barva pro burn efekt
             }
             
@@ -37,7 +39,8 @@ class Projectile {
             // For critical hits and headshots
             if (specialEffects.isCritical) {
                 this.size = size * 1.3; // 30% larger projectile
-                this.trailLength = 8; // Longer trail
+                this.baseTrailLength = 8;
+                this.trailLength = Math.max(2, Math.round(this.baseTrailLength * gameState.projectileQuality));
                 this.isCritical = true;
                 this.criticalColor = specialEffects.isHeadshot ? '#ff5500' : '#ffea00'; // Orange for headshot, yellow for critical
                 this.criticalType = specialEffects.isHeadshot ? 'headshot' : 'critical';
@@ -45,7 +48,8 @@ class Projectile {
             
             // Chain lightning effect - longer trail
             if (specialEffects.chainLightning) {
-                this.trailLength = 12; // Extra long trail for electric effect
+                this.baseTrailLength = 12; // Extra long trail for electric effect
+                this.trailLength = Math.max(2, Math.round(this.baseTrailLength * gameState.projectileQuality));
             }
             
             // Homing effect - initialize tracking angle
@@ -55,7 +59,8 @@ class Projectile {
             
             // Freeze effect - ice particles
             if (specialEffects.freezeEffect) {
-                this.trailLength = 8; // Longer trail for ice effect
+                this.baseTrailLength = 8; // Longer trail for ice effect
+                this.trailLength = Math.max(2, Math.round(this.baseTrailLength * gameState.projectileQuality));
                 this.freezeColor = '#80D8FF'; // Light blue for freeze effect
             }
             
@@ -64,7 +69,8 @@ class Projectile {
                 this.explosiveRounds = true;
                 this.explosiveRadius = specialEffects.explosiveRounds.radius;
                 this.explosiveDamageFactor = specialEffects.explosiveRounds.damageFactor;
-                this.trailLength = 8; // Longer trail for explosive effect
+                this.baseTrailLength = 8; // Longer trail for explosive effect
+                this.trailLength = Math.max(2, Math.round(this.baseTrailLength * gameState.projectileQuality));
             }
             
             // Devastating blows effect - enhanced visuals for critical explosions
@@ -686,50 +692,81 @@ class Projectile {
     
     // Draw method for railgun projectiles
     drawRailgunEffect(ctx) {
+        const quality = gameState.projectileQuality;
+        
         // Draw a longer, more electric trail
         for (let i = 0; i < this.trail.length; i++) {
             const point = this.trail[i];
             const alpha = point.alpha * 0.7;
             
-            // Electric gradient
-            const gradient = ctx.createRadialGradient(
-                point.x, point.y, 0,
-                point.x, point.y, this.size * point.alpha * 1.5
-            );
-            gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`); // White core
-            gradient.addColorStop(0.5, `rgba(0, 229, 255, ${alpha * 0.8})`); // Cyan middle
-            gradient.addColorStop(1, `rgba(0, 128, 255, 0)`); // Fade to transparent
-            
-            ctx.globalAlpha = 1.0;
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(point.x, point.y, this.size * point.alpha * 1.5, 0, Math.PI * 2);
-            ctx.fill();
+            if (quality > 0.5) {
+                // Higher quality: Electric gradient
+                const gradient = ctx.createRadialGradient(
+                    point.x, point.y, 0,
+                    point.x, point.y, this.size * point.alpha * 1.5
+                );
+                gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`); // White core
+                gradient.addColorStop(0.5, `rgba(0, 229, 255, ${alpha * 0.8})`); // Cyan middle
+                gradient.addColorStop(1, `rgba(0, 128, 255, 0)`); // Fade to transparent
+                
+                ctx.globalAlpha = 1.0;
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, this.size * point.alpha * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                // Lower quality: Simple blue circle
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = `rgba(0, 160, 255, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, this.size * point.alpha, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
         
-        // Draw main projectile with electric effect
-        const gradient = ctx.createRadialGradient(
-            this.x, this.y, 0,
-            this.x, this.y, this.size * 2
-        );
-        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)'); // White center
-        gradient.addColorStop(0.4, 'rgba(0, 229, 255, 0.8)'); // Cyan middle
-        gradient.addColorStop(1, 'rgba(0, 128, 255, 0)'); // Fade to transparent
-        
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Add electric core
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size * 0.7, 0, Math.PI * 2);
-        ctx.fill();
+        // Draw main projectile with appropriate quality
+        if (quality > 0.5) {
+            // Higher quality: Full electric effect
+            const gradient = ctx.createRadialGradient(
+                this.x, this.y, 0,
+                this.x, this.y, this.size * 2
+            );
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)'); // White center
+            gradient.addColorStop(0.4, 'rgba(0, 229, 255, 0.8)'); // Cyan middle
+            gradient.addColorStop(1, 'rgba(0, 128, 255, 0)'); // Fade to transparent
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Add electric core
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size * 0.7, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            // Lower quality: Simplified rendering
+            ctx.globalAlpha = 1.0;
+            ctx.fillStyle = 'rgba(0, 200, 255, 1)';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size * 1.2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            if (quality > 0.3) {
+                // Medium quality: Add simple core
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
     }
     
     // Standardní vykreslení projektilu
     drawStandard(ctx) {
+        const quality = gameState.projectileQuality;
+        
         // Draw trail first (older points are more transparent)
         for (let i = 0; i < this.trail.length; i++) {
             const point = this.trail[i];
@@ -748,11 +785,13 @@ class Projectile {
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
 
-        // Add a brighter core/outline
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
-        ctx.fill();
+        // Add a brighter core/outline - skip at very low quality
+        if (quality > 0.3) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
     
     // Vykreslení burn efektu
@@ -1007,76 +1046,103 @@ class Projectile {
 
     // Draw method for explosive projectiles
     drawExplosiveEffect(ctx) {
+        const quality = gameState.projectileQuality;
+        
         // Draw the trail first (underneath the projectile)
         for (let i = 0; i < this.trail.length; i++) {
             const point = this.trail[i];
             const alpha = point.alpha * 0.8;
             
-            // Create fiery gradient for explosive projectiles
-            const gradient = ctx.createRadialGradient(
-                point.x, point.y, 0,
-                point.x, point.y, this.size * point.alpha
-            );
-            gradient.addColorStop(0, `rgba(255, 255, 0, ${alpha * 0.8})`); // Bright yellow core
-            gradient.addColorStop(0.5, `rgba(255, 120, 0, ${alpha * 0.6})`); // Orange middle
-            gradient.addColorStop(1, `rgba(255, 0, 0, 0)`); // Fade to transparent red
-            
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(point.x, point.y, this.size * point.alpha, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Add glowing particles randomly to the trail
-            if (Math.random() > 0.7) {
-                const particleSize = this.size * 0.3 * point.alpha;
-                const offsetX = (Math.random() - 0.5) * this.size * 1.5;
-                const offsetY = (Math.random() - 0.5) * this.size * 1.5;
+            if (quality > 0.5) {
+                // High quality: Fiery gradient for trail
+                const gradient = ctx.createRadialGradient(
+                    point.x, point.y, 0,
+                    point.x, point.y, this.size * point.alpha
+                );
+                gradient.addColorStop(0, `rgba(255, 255, 0, ${alpha * 0.8})`); // Bright yellow core
+                gradient.addColorStop(0.5, `rgba(255, 120, 0, ${alpha * 0.6})`); // Orange middle
+                gradient.addColorStop(1, `rgba(255, 0, 0, 0)`); // Fade to transparent red
                 
-                ctx.fillStyle = `rgba(255, 165, 0, ${alpha * 0.5})`;
+                ctx.fillStyle = gradient;
                 ctx.beginPath();
-                ctx.arc(point.x + offsetX, point.y + offsetY, particleSize, 0, Math.PI * 2);
+                ctx.arc(point.x, point.y, this.size * point.alpha, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Add glowing particles randomly to the trail - only at high quality
+                if (quality > 0.7 && Math.random() > 0.7) {
+                    const particleSize = this.size * 0.3 * point.alpha;
+                    const offsetX = (Math.random() - 0.5) * this.size * 1.5;
+                    const offsetY = (Math.random() - 0.5) * this.size * 1.5;
+                    
+                    ctx.fillStyle = `rgba(255, 165, 0, ${alpha * 0.5})`;
+                    ctx.beginPath();
+                    ctx.arc(point.x + offsetX, point.y + offsetY, particleSize, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            } else {
+                // Lower quality: Simple orange circles
+                ctx.fillStyle = `rgba(255, 120, 0, ${alpha * 0.7})`;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, this.size * point.alpha * 0.8, 0, Math.PI * 2);
                 ctx.fill();
             }
         }
         
-        // Draw the projectile with an explosive appearance
-        const gradient = ctx.createRadialGradient(
-            this.x, this.y, 0,
-            this.x, this.y, this.size * 1.5
-        );
-        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)'); // Bright center
-        gradient.addColorStop(0.3, 'rgba(255, 255, 0, 0.8)'); // Yellow
-        gradient.addColorStop(0.7, 'rgba(255, 120, 0, 0.6)'); // Orange
-        gradient.addColorStop(1, 'rgba(255, 0, 0, 0)'); // Fade to transparent red
-        
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size * 1.5, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Core of the projectile
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size * 0.6, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Add a pulsating effect for devastating blows (critical + devastatingBlows)
-        if (this.devastatingBlows && this.specialEffects.isCritical) {
-            const pulseSize = (Math.sin(Date.now() / 100) + 1) * 0.3 + 0.7; // 0.7 to 1.3
-            
-            // Outer glow for devastating projectiles
-            const outerGradient = ctx.createRadialGradient(
+        // Draw the projectile with appropriate quality
+        if (quality > 0.5) {
+            // Higher quality: Full explosive appearance
+            const gradient = ctx.createRadialGradient(
                 this.x, this.y, 0,
-                this.x, this.y, this.size * 2.5 * pulseSize
+                this.x, this.y, this.size * 1.5
             );
-            outerGradient.addColorStop(0, 'rgba(255, 120, 0, 0)');
-            outerGradient.addColorStop(0.7, 'rgba(255, 60, 0, 0.3)');
-            outerGradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)'); // Bright center
+            gradient.addColorStop(0.3, 'rgba(255, 255, 0, 0.8)'); // Yellow
+            gradient.addColorStop(0.7, 'rgba(255, 120, 0, 0.6)');
+            gradient.addColorStop(1, 'rgba(255, 0, 0, 0)'); // Fade to transparent red
             
-            ctx.fillStyle = outerGradient;
+            ctx.fillStyle = gradient;
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size * 2.5 * pulseSize, 0, Math.PI * 2);
+            ctx.arc(this.x, this.y, this.size * 1.5, 0, Math.PI * 2);
             ctx.fill();
+            
+            // Core of the projectile
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size * 0.6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Add a pulsating effect for devastating blows - only at high quality
+            if (quality > 0.7 && this.devastatingBlows && this.specialEffects.isCritical) {
+                const pulseSize = (Math.sin(Date.now() / 100) + 1) * 0.3 + 0.7; // 0.7 to 1.3
+                
+                // Outer glow for devastating projectiles
+                const outerGradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, this.size * 2.5 * pulseSize
+                );
+                outerGradient.addColorStop(0, 'rgba(255, 120, 0, 0)');
+                outerGradient.addColorStop(0.7, 'rgba(255, 60, 0, 0.3)');
+                outerGradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+                
+                ctx.fillStyle = outerGradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 2.5 * pulseSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        } else {
+            // Lower quality: Simple orange projectile
+            ctx.fillStyle = 'rgba(255, 120, 0, 0.9)';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size * 1.2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Simple core at medium quality
+            if (quality > 0.3) {
+                ctx.fillStyle = 'rgba(255, 255, 0, 0.8)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
     }
 }

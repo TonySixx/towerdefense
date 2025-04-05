@@ -46,6 +46,9 @@ export const gameState = {
     showFloatingTexts: true,
     particleIntensity: 1.0, // Intenzita částicových efektů (0.0 - 1.0)
     floatingTextIntensity: 1.0, // Intenzita plovoucích textů (0.0 - 1.0)
+    floatingTextEffects: 1.0, // Úroveň vizuálních efektů floating textů (0.0 - 1.0)
+    floatingTextDuration: 1.0, // Faktor pro trvání floating textů (0.5 - 2.0)
+    projectileQuality: 1.0, // Quality setting for projectiles (0.0 - 1.0)
     
     // Performance optimization settings
     maxParticles: 500, // Maximum number of particles allowed
@@ -151,8 +154,17 @@ export function createFloatingText(x, y, text, color = '#ffd700', size = 16, lif
     const intensityFactor = gameState.floatingTextIntensity * gameState.currentPerformanceScale;
     const adjustedSize = Math.max(8, Math.floor(size * intensityFactor));
     
-    // Create the floating text with adjusted size
-    gameState.floatingTexts.push(new FloatingText(x, y, text, color, adjustedSize, lifespan));
+    // Adjust lifespan based on duration setting
+    const durationFactor = gameState.floatingTextDuration;
+    const adjustedLifespan = Math.floor(lifespan * durationFactor);
+    
+    // Create the floating text with adjusted parameters
+    const floatingText = new FloatingText(x, y, text, color, adjustedSize, adjustedLifespan);
+    
+    // Apply effects level
+    floatingText.effectsLevel = gameState.floatingTextEffects;
+    
+    gameState.floatingTexts.push(floatingText);
 }
 
 // Spawn new enemy - aktualizovaná metoda pro nový systém vln
