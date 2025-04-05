@@ -2176,6 +2176,44 @@ kbd {
     box-shadow: 0 0 8px rgba(255, 112, 67, 0.8);
 }
 
+.hyperUltimate-icon {
+    background-color: #1a237e; /* Deep blue from constants.js */
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.8); /* Bright cyan glow, more intense */
+}
+
+.hyperUltimate-icon::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    background: radial-gradient(circle, #00e5ff 0%, #2979ff 60%, #1a237e 100%);
+    border-radius: 50%;
+    animation: pulse-hyper 1.5s infinite;
+}
+
+.hyperUltimate-icon::after {
+    content: '';
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 20px;
+    background-color: #0d47a1; /* Dark blue from constants.js */
+    box-shadow: 0 0 12px rgba(0, 229, 255, 1.0);
+}
+
+@keyframes pulse-hyper {
+    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.7; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.7; }
+}
+
 /* Settings Button */
 .settings-button {
     position: absolute;

@@ -580,8 +580,8 @@ class Tower {
                     }
                 }
             }
-        } else {
-            // Standardní nebo laserová hlaveň
+        } else if (this.type !== 'hyperUltimate') {
+            // Standardní nebo laserová hlaveň - ale nevykreslovat pro hyperUltimate
             const gunX = -gunWidth / 2;
             const gunY = -topRadius - shootOffset; // Apply offset upwards relative to rotated tower
             
@@ -596,12 +596,15 @@ class Tower {
             if (this.visualEffects.laserBeam && this.effectsTimers.laserBeamOpacity > 0 && this.target) {
                 ctx.restore(); // Restore context to original state
                 
-                // Vykreslení laserového paprsku
+                // Vykreslení laserového paprsku s lepším efektem
                 const beamOpacity = this.effectsTimers.laserBeamOpacity / 300;
                 const beamColor = this.projectileColor.replace('rgb', 'rgba').replace(')', `, ${beamOpacity})`);
                 
+                // Vypočítání pozice konce hlavně - použijeme vylepšenou délku hlavně
+                const actualGunLength = gunLength * (1.1 + (this.level - 1) * 0.1); // Roste s úrovní věže
+                
                 ctx.beginPath();
-                ctx.moveTo(this.x + Math.cos(this.angle) * gunLength, this.y + Math.sin(this.angle) * gunLength);
+                ctx.moveTo(this.x + Math.cos(this.angle) * actualGunLength, this.y + Math.sin(this.angle) * actualGunLength);
                 
                 // Pokud máme cíl, paprsek směřuje k cíli
                 if (this.target && !this.target.isDead) {
@@ -694,6 +697,306 @@ class Tower {
                     ctx.strokeStyle = `rgba(213, 0, 249, ${0.6 + 0.2 * Math.sin(Date.now() / 500 + i)})`;
                     ctx.lineWidth = 2;
                     ctx.stroke();
+                }
+            }
+        }
+
+        // Special drawing for Hyper Ultimate tower
+        if (this.type === 'hyperUltimate') {
+            const time = Date.now() / 1000;
+            
+            // Customize appearance based on tower level
+            let coreColors, particleColor, energyRingColor, enhancedGunLength;
+            
+            if (this.level === 1) {
+                coreColors = {
+                    inner: '#00e5ff',  // Bright cyan
+                    middle: '#2979ff', // Bright blue
+                    outer: '#1a237e'   // Deep blue
+                };
+                particleColor = '#40c4ff'; // Bright blue
+                energyRingColor = '#00b0ff';
+                enhancedGunLength = gunLength * 1.1;
+            } else if (this.level === 2) {
+                coreColors = {
+                    inner: '#18ffff',  // Brightest cyan
+                    middle: '#40c4ff', // Bright light blue
+                    outer: '#0d47a1'   // Dark blue
+                };
+                particleColor = '#00b8d4'; // Deeper cyan
+                energyRingColor = '#00e5ff';
+                enhancedGunLength = gunLength * 1.2;
+            } else { // Level 3
+                coreColors = {
+                    inner: '#00e5ff',   // Bright cyan
+                    middle: '#2962ff',  // Vibrant blue
+                    outer: '#304ffe'    // Electric blue
+                };
+                particleColor = '#00e5ff'; // Cyan
+                energyRingColor = '#2979ff';
+                enhancedGunLength = gunLength * 1.3;
+            }
+            
+            // 1. Enhanced Energy Core
+            const pulseScale = 0.8 + 0.2 * Math.sin(time * 3); // Faster pulse than Pulsar
+            const coreRadius = baseRadius * 0.65; // Slightly larger than Pulsar
+            
+            const coreGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, coreRadius);
+            coreGradient.addColorStop(0, coreColors.inner);
+            coreGradient.addColorStop(0.6, coreColors.middle);
+            coreGradient.addColorStop(1, coreColors.outer);
+            
+            ctx.beginPath();
+            ctx.arc(0, 0, coreRadius * pulseScale, 0, Math.PI * 2);
+            ctx.fillStyle = coreGradient;
+            ctx.fill();
+            
+            // 2. Enhanced Gun Barrel Design - wider and more advanced
+            // Calculate gun dimensions
+            const enhancedGunWidth = gunWidth * 1.5;
+            
+            // Create gradient for gun
+            const gunGradient = ctx.createLinearGradient(
+                -enhancedGunWidth/2, 0, 
+                enhancedGunWidth/2, 0
+            );
+            gunGradient.addColorStop(0, '#0d47a1');
+            gunGradient.addColorStop(0.5, '#2962ff');
+            gunGradient.addColorStop(1, '#0d47a1');
+            
+            // Draw enhanced gun barrel
+            ctx.fillStyle = gunGradient;
+            ctx.fillRect(
+                -enhancedGunWidth/2, 
+                -topRadius - shootOffset, 
+                enhancedGunWidth, 
+                -enhancedGunLength
+            );
+            
+            // Add gun barrel details - energy glow on the barrel
+            const barrelGlowOpacity = 0.4 + 0.2 * Math.sin(time * 4);
+            ctx.fillStyle = `rgba(0, 229, 255, ${barrelGlowOpacity})`;
+            
+            // Energy line down the middle of the barrel
+            ctx.fillRect(
+                -enhancedGunWidth/6, 
+                -topRadius - shootOffset, 
+                enhancedGunWidth/3, 
+                -enhancedGunLength
+            );
+            
+            // Enhanced barrel tip with energy glow
+            ctx.fillStyle = coreColors.inner;
+            ctx.fillRect(
+                -enhancedGunWidth/2 - 2, 
+                -topRadius - shootOffset - enhancedGunLength - 2, 
+                enhancedGunWidth + 4, 
+                5
+            );
+            
+            // Speciální vykreslení laserového paprsku pro hyperUltimate věž
+            if (this.visualEffects.laserBeam && this.effectsTimers.laserBeamOpacity > 0 && this.target) {
+                ctx.restore(); // Restore context to original state
+                
+                // Vykreslení laserového paprsku s lepším efektem
+                const beamOpacity = this.effectsTimers.laserBeamOpacity / 300;
+                const beamColor = this.projectileColor.replace('rgb', 'rgba').replace(')', `, ${beamOpacity})`);
+                
+                // Vypočítání pozice konce hlavně - použijeme vylepšenou délku hlavně
+                const actualGunLength = gunLength * (1.1 + (this.level - 1) * 0.1); // Roste s úrovní věže
+                
+                ctx.beginPath();
+                ctx.moveTo(this.x + Math.cos(this.angle) * actualGunLength, this.y + Math.sin(this.angle) * actualGunLength);
+                
+                // Pokud máme cíl, paprsek směřuje k cíli
+                if (this.target && !this.target.isDead) {
+                    ctx.lineTo(this.target.x, this.target.y);
+                } else {
+                    // Jinak paprsek směřuje v aktuálním úhlu
+                    const endX = this.x + Math.cos(this.angle) * this.range;
+                    const endY = this.y + Math.sin(this.angle) * this.range;
+                    ctx.lineTo(endX, endY);
+                }
+                
+                // Vylepšený paprsek pro hyperUltimate
+                ctx.strokeStyle = beamColor;
+                ctx.lineWidth = 3 + this.level; // Širší paprsek podle úrovně
+                ctx.stroke();
+                
+                // Přidání vnitřního záření pro laser
+                ctx.beginPath();
+                ctx.moveTo(this.x + Math.cos(this.angle) * actualGunLength, this.y + Math.sin(this.angle) * actualGunLength);
+                
+                if (this.target && !this.target.isDead) {
+                    ctx.lineTo(this.target.x, this.target.y);
+                } else {
+                    const endX = this.x + Math.cos(this.angle) * this.range;
+                    const endY = this.y + Math.sin(this.angle) * this.range;
+                    ctx.lineTo(endX, endY);
+                }
+                
+                const innerColor = this.level === 3 ? 
+                    `rgba(0, 229, 255, ${beamOpacity * 0.8})` : 
+                    `rgba(41, 121, 255, ${beamOpacity * 0.8})`;
+                ctx.strokeStyle = innerColor;
+                ctx.lineWidth = 1.5 + this.level * 0.5;
+                ctx.stroke();
+                
+                // Zpět na saved context
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle + Math.PI / 2);
+            }
+            
+            // 3. Energy Particles orbiting the tower
+            const particleCount = 5 + this.level * 3; // More particles for higher levels
+            
+            for (let i = 0; i < particleCount; i++) {
+                // Calculate orbit parameters
+                const orbitSpeed = (i % 3 === 0) ? 0.7 : (i % 3 === 1) ? 1.0 : 1.3; // Different speeds
+                const angle = (i / particleCount) * Math.PI * 2 + time * orbitSpeed;
+                const radiusVariation = 0.1 * Math.sin(time * 2 + i * 0.7);
+                const dist = baseRadius * (0.9 + radiusVariation + this.level * 0.1);
+                
+                const particleX = Math.cos(angle) * dist;
+                const particleY = Math.sin(angle) * dist;
+                
+                // Size varies by level and has subtle animation
+                const particleSize = 1.5 + (this.level * 0.5) + 0.5 * Math.sin(time * 3 + i);
+                
+                // Draw the particle
+                ctx.beginPath();
+                ctx.arc(particleX, particleY, particleSize, 0, Math.PI * 2);
+                ctx.fillStyle = particleColor;
+                ctx.fill();
+                
+                // Add particle trail for level 2+
+                if (this.level >= 2) {
+                    const trailLength = 3;
+                    for (let t = 1; t <= trailLength; t++) {
+                        const trailAngle = angle - (orbitSpeed * 0.2 * t);
+                        const trailX = Math.cos(trailAngle) * dist;
+                        const trailY = Math.sin(trailAngle) * dist;
+                        const trailOpacity = (1 - t/trailLength) * 0.6;
+                        
+                        ctx.beginPath();
+                        ctx.arc(trailX, trailY, particleSize * (1 - t/trailLength * 0.7), 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(0, 229, 255, ${trailOpacity})`;
+                        ctx.fill();
+                    }
+                }
+            }
+            
+            // 4. Enhanced shooting effect
+            if (this.shootAnimTimer > 0) {
+                const energyBeamOpacity = this.shootAnimTimer / this.shootAnimDuration;
+                
+                // Draw main energy beam
+                ctx.strokeStyle = `rgba(0, 229, 255, ${energyBeamOpacity})`;
+                ctx.lineWidth = 8 * energyBeamOpacity;
+                ctx.beginPath();
+                ctx.moveTo(0, -topRadius);
+                ctx.lineTo(0, -topRadius - enhancedGunLength * 1.5);
+                ctx.stroke();
+                
+                // Energy burst at the end
+                const burstSize = (this.shootAnimDuration - this.shootAnimTimer) / this.shootAnimDuration * 12;
+                ctx.beginPath();
+                ctx.arc(0, -topRadius - enhancedGunLength * 1.5, burstSize, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(0, 229, 255, ${energyBeamOpacity * 0.8})`;
+                ctx.fill();
+                
+                // Additional energy rings expanding from the tower when shooting
+                const ringsCount = this.level;
+                for (let i = 0; i < ringsCount; i++) {
+                    const ringProgress = (this.shootAnimDuration - this.shootAnimTimer) / this.shootAnimDuration;
+                    const ringRadius = baseRadius * (1 + ringProgress * (1 + i * 0.5));
+                    const ringOpacity = (1 - ringProgress) * 0.5;
+                    
+                    ctx.beginPath();
+                    ctx.arc(0, 0, ringRadius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(41, 121, 255, ${ringOpacity})`;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+            
+            // 5. Level-specific special effects
+            if (this.level >= 2) {
+                // Energy rings surrounding the tower
+                const ringsCount = this.level;
+                for (let i = 0; i < ringsCount; i++) {
+                    const ringAngle = time * (i % 2 === 0 ? 0.5 : -0.5) + i * Math.PI / ringsCount;
+                    const ringRadius = baseRadius * (1.2 + i * 0.15);
+                    
+                    ctx.beginPath();
+                    ctx.arc(0, 0, ringRadius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(41, 121, 255, ${0.3 + 0.1 * Math.sin(time * 2 + i)})`;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+            
+            // Level 3 special effect - energy field and arcs
+            if (this.level === 3) {
+                // Outer energy field
+                const fieldOpacity = 0.2 + 0.1 * Math.sin(time * 1.5);
+                ctx.beginPath();
+                ctx.arc(0, 0, baseRadius * 1.4, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(41, 121, 255, ${fieldOpacity})`;
+                ctx.fill();
+                
+                // Energy arcs circling around
+                const arcCount = 4;
+                for (let i = 0; i < arcCount; i++) {
+                    const startAngle = (i / arcCount) * Math.PI * 2 + time * (i % 2 === 0 ? 0.7 : -0.7);
+                    const endAngle = startAngle + Math.PI / 3;
+                    
+                    ctx.beginPath();
+                    ctx.arc(0, 0, baseRadius * 1.5, startAngle, endAngle);
+                    ctx.strokeStyle = `rgba(0, 229, 255, ${0.7 + 0.3 * Math.sin(time * 3 + i)})`;
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+                
+                // Energy beams radiating from the top for level 3
+                const beamCount = 3;
+                const beamLength = baseRadius * 1.8;
+                const beamWidth = 2;
+                
+                for (let i = 0; i < beamCount; i++) {
+                    const beamAngle = (i / beamCount) * Math.PI * 2 + time / 2;
+                    const beamX1 = 0;
+                    const beamY1 = -topRadius - enhancedGunLength - 5;
+                    const beamX2 = Math.sin(beamAngle) * beamLength;
+                    const beamY2 = beamY1 - Math.cos(beamAngle) * beamLength;
+                    
+                    // Střed paprsku - nejjasnější část
+                    const gradient = ctx.createLinearGradient(beamX1, beamY1, beamX2, beamY2);
+                    gradient.addColorStop(0, `rgba(0, 229, 255, 0.8)`);
+                    gradient.addColorStop(0.5, `rgba(41, 121, 255, 0.3)`);
+                    gradient.addColorStop(1, `rgba(0, 229, 255, 0)`);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(beamX1, beamY1);
+                    ctx.lineTo(beamX2, beamY2);
+                    ctx.strokeStyle = gradient;
+                    ctx.lineWidth = beamWidth;
+                    ctx.stroke();
+                    
+                    // Přidání malých světelných bodů podél paprsku
+                    const pointCount = 4;
+                    for (let j = 1; j <= pointCount; j++) {
+                        const t = j / (pointCount + 1);
+                        const pointX = beamX1 + (beamX2 - beamX1) * t;
+                        const pointY = beamY1 + (beamY2 - beamY1) * t;
+                        const pointSize = 1.5 * (1 - t); // Menší body dále od zdroje
+                        
+                        ctx.beginPath();
+                        ctx.arc(pointX, pointY, pointSize, 0, Math.PI * 2);
+                        ctx.fillStyle = '#00e5ff';
+                        ctx.fill();
+                    }
                 }
             }
         }

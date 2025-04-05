@@ -562,6 +562,92 @@ export const towerTypes = {
         cost: 600, range: 170, damage: 32, fireRate: 300, projectileSpeed: 12,
         colorBase: '#8B4513', colorTop: '#CD853F', colorGun: '#5D4037',
         projectileColor: '#FF7043', projectileSize: 5
+    },
+    hyperUltimate: {
+        name: "Hyper Ultimate",
+        levels: [
+            {
+                level: 1,
+                cost: 1200,
+                range: 220,
+                damage: 200,
+                fireRate: 500,
+                projectileSpeed: 25,
+                sellValue: 840, // 70% return value
+                upgradePrice: 800,
+                colorBase: '#1a237e', // Deep blue
+                colorTop: '#2979ff', // Bright blue
+                colorGun: '#0d47a1', // Dark blue
+                projectileColor: '#00e5ff', // Bright cyan
+                projectileSize: 6,
+                extraFeatures: {
+                    laserBeam: true, // Visual beam effect
+                    metallic: true,  // Premium look
+                    criticalChance: 0.2 // 20% chance of critical hit (2x damage)
+                }
+            },
+            {
+                level: 2,
+                cost: 2000, // original + upgrade
+                range: 250,
+                damage: 300,
+                fireRate: 400,
+                projectileSpeed: 28,
+                sellValue: 1400, // 70% return value
+                upgradePrice: 1000,
+                colorBase: '#0d47a1', // Darker blue
+                colorTop: '#40c4ff', // Brighter blue
+                colorGun: '#002171', // Very dark blue
+                projectileColor: '#18ffff', // Bright cyan-blue
+                projectileSize: 7,
+                extraFeatures: {
+                    laserBeam: true, // Visual beam effect
+                    metallic: true,  // Premium look
+                    criticalChance: 0.25, // 25% chance of critical hit
+                    // Chain lightning effect
+                    chainLightning: {
+                        range: 100,      // Range to nearby enemies
+                        damage: 100,     // Damage of chain effect
+                        targets: 2       // Number of secondary targets
+                    }
+                }
+            },
+            {
+                level: 3,
+                cost: 3000, // total investment
+                range: 280,
+                damage: 450,
+                fireRate: 300,
+                projectileSpeed: 32,
+                sellValue: 2100, // 70% return value
+                upgradePrice: 0, // maximum level
+                colorBase: '#002171', // Darkest blue
+                colorTop: '#00b0ff', // Bright vibrant blue
+                colorGun: '#000a12', // Almost black-blue
+                projectileColor: '#00b8d4', // Deep cyan
+                projectileSize: 8,
+                extraFeatures: {
+                    laserBeam: true, // Visual beam effect
+                    metallic: true,  // Premium look
+                    criticalChance: 0.3, // 30% chance of critical hit
+                    // Enhanced chain lightning effect
+                    chainLightning: {
+                        range: 120,      // Increased range
+                        damage: 150,     // Increased damage
+                        targets: 3       // More secondary targets
+                    },
+                    // Area damage effect
+                    pulsarAreaDamage: {
+                        range: 80,
+                        damageFactor: 0.4 // 40% of main damage
+                    }
+                }
+            }
+        ],
+        // For backward compatibility we keep basic properties of level 1
+        cost: 1200, range: 220, damage: 200, fireRate: 500, projectileSpeed: 25,
+        colorBase: '#1a237e', colorTop: '#2979ff', colorGun: '#0d47a1',
+        projectileColor: '#00e5ff', projectileSize: 6
     }
 };
 
