@@ -75,7 +75,56 @@ export function drawPath(ctx, canvas, currentPath) {
     }
     
     ctx.stroke();
-    ctx.globalAlpha = 1.0; // Reset alpha
+    
+    // Reset context properties after path drawing
+    ctx.globalAlpha = 1.0;
+    ctx.lineCap = 'butt';
+    ctx.lineJoin = 'miter';
+    ctx.lineWidth = 1.0;
+    
+    // Draw subtle light effects for start and end points
+    // Start point light effect
+    const startPoint = getCanvasCoords(currentPath[0].x, currentPath[0].y);
+    const startRadius = TILE_SIZE * 0.85; // Light radius adjusted to mostly stay within tile
+    
+    // Create radial gradient for start light
+    const startGrad = ctx.createRadialGradient(
+        startPoint.x, startPoint.y, 0,
+        startPoint.x, startPoint.y, startRadius
+    );
+    startGrad.addColorStop(0, 'rgba(160, 255, 160, 0.6)'); // Slightly more visible center
+    startGrad.addColorStop(0.3, 'rgba(120, 255, 120, 0.4)');
+    startGrad.addColorStop(0.7, 'rgba(80, 255, 80, 0.2)');
+    startGrad.addColorStop(1, 'rgba(40, 255, 40, 0)'); // Fully transparent at edge
+    
+    // Draw start light effect
+    ctx.beginPath();
+    ctx.arc(startPoint.x, startPoint.y, startRadius, 0, Math.PI * 2);
+    ctx.fillStyle = startGrad;
+    ctx.fill();
+    
+    // End point light effect
+    const endPoint = getCanvasCoords(currentPath[currentPath.length - 1].x, currentPath[currentPath.length - 1].y);
+    const endRadius = TILE_SIZE * 0.85; // Same radius as start
+    
+    // Create radial gradient for end light
+    const endGrad = ctx.createRadialGradient(
+        endPoint.x, endPoint.y, 0,
+        endPoint.x, endPoint.y, endRadius
+    );
+    endGrad.addColorStop(0, 'rgba(255, 160, 160, 0.6)'); // Slightly more visible center
+    endGrad.addColorStop(0.3, 'rgba(255, 120, 120, 0.4)');
+    endGrad.addColorStop(0.7, 'rgba(255, 80, 80, 0.2)');
+    endGrad.addColorStop(1, 'rgba(255, 40, 40, 0)'); // Fully transparent at edge
+    
+    // Draw end light effect
+    ctx.beginPath();
+    ctx.arc(endPoint.x, endPoint.y, endRadius, 0, Math.PI * 2);
+    ctx.fillStyle = endGrad;
+    ctx.fill();
+    
+    // Reset all context properties to defaults
+    ctx.globalAlpha = 1.0;
 }
 
 // Draw preview when placing towers
