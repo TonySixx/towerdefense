@@ -3,7 +3,7 @@ import { getCanvas, getContext, getUIElements, towerTypes, getMenuCanvas, getMen
 import { 
     gameState, initGame, update, startNextWave, placeTower, 
     createParticles, updateUI, selectTower, upgradeTower, 
-    sellTower, cancelSelection 
+    sellTower, cancelSelection, skipToWave
 } from './gameLogic.js';
 import { draw } from './renderers.js';
 import { getGridCoords, createGrid, markPathOnGrid } from './utils.js';
@@ -48,6 +48,10 @@ let frameCount = 0;
 let fps = 0;
 let fpsUpdateInterval = 500; // Update FPS display every 500ms
 let lastFpsUpdate = 0;
+
+// Cheat code tracking
+let cheatSequence = '';
+const targetCheatCode = 'WAVE';
 
 // Get required DOM elements
 const canvas = getCanvas();
@@ -970,6 +974,35 @@ function handleKeyDown(e) {
     }
     
     const { towerButtons, upgradeTowerButton, startWaveButton } = getUIElements();
+    
+    // Check for cheat code sequence
+    const key = e.key.toUpperCase();
+    const expectedKey = targetCheatCode.charAt(cheatSequence.length);
+    
+    if (key === expectedKey) {
+        // Append the correct key to the sequence
+        cheatSequence += key;
+        
+        // Check if the full cheat code has been entered
+        if (cheatSequence === targetCheatCode) {
+            // Reset the sequence
+            cheatSequence = '';
+            
+            // Prompt user for wave number
+            const waveNumber = prompt('CHEAT ACTIVATED: Enter wave number to skip to:');
+            if (waveNumber !== null) {
+                skipToWave(waveNumber);
+            }
+        }
+    } else {
+        // Wrong key, reset the sequence
+        cheatSequence = '';
+        
+        // If this key is the first key of the cheat code, start a new sequence
+        if (key === targetCheatCode.charAt(0)) {
+            cheatSequence = key;
+        }
+    }
     
     // Získání číselné hodnoty z klávesy (funguje pro různé klávesnice)
     let numKey = null;

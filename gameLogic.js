@@ -904,4 +904,41 @@ export function updateUI() {
     if (gameState.selectedTower) {
         updateTowerActionUI();
     }
+}
+
+// Skip to a specific wave (cheat function)
+export function skipToWave(waveNumber) {
+    // Validate input
+    const targetWave = parseInt(waveNumber, 10);
+    if (isNaN(targetWave) || targetWave < 1 || targetWave > (gameState.maxWaves || MAX_WAVES)) {
+        console.log(`Invalid wave number: ${waveNumber}. Valid range: 1-${gameState.maxWaves || MAX_WAVES}`);
+        return;
+    }
+    
+    // Reset current wave state
+    gameState.enemies = [];
+    gameState.enemyQueue = [];
+    gameState.projectiles = [];
+    gameState.bossPending = false;
+    gameState.bossConfig = null;
+    
+    // Add bonus money based on skipped waves to help player handle increased difficulty
+    const currentWave = gameState.wave;
+    const wavesToSkip = targetWave - currentWave - 1;
+    if (wavesToSkip > 0) {
+        const moneyBonus = wavesToSkip * 50; // 50 money per skipped wave
+        gameState.money += moneyBonus;
+        console.log(`Added ${moneyBonus} bonus money for skipping ahead`);
+    }
+    
+    // Set wave to one before target (startNextWave will increment)
+    gameState.wave = targetWave - 1;
+    
+    // Set game state to waiting so we can start next wave
+    gameState.state = 'waiting';
+    
+    // Start the target wave
+    startNextWave();
+    
+    console.log(`Cheat activated: Skipped to wave ${targetWave}`);
 } 
