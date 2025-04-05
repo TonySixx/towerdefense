@@ -568,12 +568,12 @@ export const towerTypes = {
         levels: [
             {
                 level: 1,
-                cost: 1200,
+                cost: 2000,
                 range: 220,
                 damage: 200,
                 fireRate: 500,
                 projectileSpeed: 25,
-                sellValue: 840, // 70% return value
+                sellValue: 1400, // 70% return value
                 upgradePrice: 800,
                 colorBase: '#1a237e', // Deep blue
                 colorTop: '#2979ff', // Bright blue
@@ -588,12 +588,12 @@ export const towerTypes = {
             },
             {
                 level: 2,
-                cost: 2000, // original + upgrade
+                cost: 2800, // original + upgrade
                 range: 250,
                 damage: 300,
                 fireRate: 400,
                 projectileSpeed: 28,
-                sellValue: 1400, // 70% return value
+                sellValue: 1960, // 70% return value of 2800
                 upgradePrice: 1000,
                 colorBase: '#0d47a1', // Darker blue
                 colorTop: '#40c4ff', // Brighter blue
@@ -614,12 +614,12 @@ export const towerTypes = {
             },
             {
                 level: 3,
-                cost: 3000, // total investment
+                cost: 3800, // total investment
                 range: 280,
                 damage: 450,
                 fireRate: 300,
                 projectileSpeed: 32,
-                sellValue: 2100, // 70% return value
+                sellValue: 2660, // 70% return value
                 upgradePrice: 0, // maximum level
                 colorBase: '#002171', // Darkest blue
                 colorTop: '#00b0ff', // Bright vibrant blue
@@ -645,7 +645,7 @@ export const towerTypes = {
             }
         ],
         // For backward compatibility we keep basic properties of level 1
-        cost: 1200, range: 220, damage: 200, fireRate: 500, projectileSpeed: 25,
+        cost: 2000, range: 220, damage: 200, fireRate: 500, projectileSpeed: 25,
         colorBase: '#1a237e', colorTop: '#2979ff', colorGun: '#0d47a1',
         projectileColor: '#00e5ff', projectileSize: 6
     }
